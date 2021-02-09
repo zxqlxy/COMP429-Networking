@@ -157,19 +157,19 @@ int main(int argc, char **argv) {
 
       /* put connected sockets into the read and write sets to monitor them */
       for (current = head.next; current; current = current->next) {
-	FD_SET(current->socket, &read_set);
+        FD_SET(current->socket, &read_set);
 
-	if (current->pending_data) {
-	  /* there is data pending to be sent, monitor the socket
-             in the write set so we know when it is ready to take more
-             data */
-	  FD_SET(current->socket, &write_set);
-	}
+        if (current->pending_data) {
+          /* there is data pending to be sent, monitor the socket
+                 in the write set so we know when it is ready to take more
+                 data */
+          FD_SET(current->socket, &write_set);
+        }
 
-	if (current->socket > max) {
-	  /* update max if necessary */
-	  max = current->socket;
-	}
+        if (current->socket > max) {
+          /* update max if necessary */
+          max = current->socket;
+        }
       }
 
       time_out.tv_usec = 100000; /* 1-tenth of a second timeout */
@@ -178,10 +178,10 @@ int main(int argc, char **argv) {
       /* invoke select, make sure to pass max+1 !!! */
       select_retval = select(max+1, &read_set, &write_set, NULL, &time_out);
       if (select_retval < 0)
-	{
-	  perror ("select failed");
-	  abort ();
-	}
+    {
+      perror ("select failed");
+      abort ();
+    }
 
       if (select_retval == 0)
 	{
@@ -247,21 +247,21 @@ int main(int argc, char **argv) {
                */
 	      count = send(current->socket, buf, BUF_LEN, MSG_DONTWAIT);
 	      if (count < 0) {
-		if (errno == EAGAIN) {
-		  /* we are trying to dump too much data down the socket,
-		     it cannot take more for the time being 
-		     will have to go back to select and wait til select
-		     tells us the socket is ready for writing
-		  */
-		} else {
-		  /* something else is wrong */
-		}
-	      }
-	      /* note that it is important to check count for exactly
-                 how many bytes were actually sent even when there are
-                 no error. send() may send only a portion of the buffer
-                 to be sent.
-	      */
+            if (errno == EAGAIN) {
+              /* we are trying to dump too much data down the socket,
+                 it cannot take more for the time being
+                 will have to go back to select and wait til select
+                 tells us the socket is ready for writing
+              */
+            } else {
+              /* something else is wrong */
+            }
+              }
+              /* note that it is important to check count for exactly
+                     how many bytes were actually sent even when there are
+                     no error. send() may send only a portion of the buffer
+                     to be sent.
+              */
 	    }
 
 	    if (FD_ISSET(current->socket, &read_set)) {
@@ -269,65 +269,80 @@ int main(int argc, char **argv) {
 	      
 	      count = recv(current->socket, buf, BUF_LEN, 0);
 	      if (count <= 0) {
-		/* something is wrong */
-		if (count == 0) {
-		  printf("Client closed connection. Client IP address is: %s\n", inet_ntoa(current->client_addr.sin_addr));
-		} else {
-		  perror("error receiving from a client");
-		}
+            /* something is wrong */
+            if (count == 0) {
+              printf("Client closed connection. Client IP address is: %s\n", inet_ntoa(current->client_addr.sin_addr));
+            } else {
+              perror("error receiving from a client");
+            }
 
-		/* connection is closed, clean up */
-		close(current->socket);
-		dump(&head, current->socket);
+		    /* connection is closed, clean up */
+		    close(current->socket);
+		    dump(&head, current->socket);
 	      } else {
-		/* we got count bytes of data from the client */
-                /* in general, the amount of data received in a recv()
-                   call may not be a complete application message. it
-                   is important to check the data received against
-                   the message format you expect. if only a part of a
-                   message has been received, you must wait and
-                   receive the rest later when more data is available
-                   to be read */
-		/* in this case, we expect a message where the first byte
-                   stores the number of bytes used to encode a number, 
-                   followed by that many bytes holding a numeric value */
-		if (buf[0]+1 != count) {
-                  /* we got only a part of a message, we won't handle this in
-                     this simple example */
-		  printf("Message incomplete, something is still being transmitted\n");
-		  return 0;
-		} else {
-		  switch(buf[0]) {
-		  case 1:
-		    /* note the type casting here forces signed extension
-		       to preserve the signedness of the value */
-		    /* note also the use of parentheses for pointer 
-		       dereferencing is critical here */
-		    num = (char) *(char *)(buf+1);
-		    break;
-		  case 2:
-		    /* note the type casting here forces signed extension
-		       to preserve the signedness of the value */
-		    /* note also the use of parentheses for pointer 
-		       dereferencing is critical here */
-		    /* note for 16 bit integers, byte ordering matters */
-		    num = (short) ntohs(*(short *)(buf+1));
-		    break;
-		  case 4:
-		    /* note the type casting here forces signed extension
-		       to preserve the signedness of the value */
-		    /* note also the use of parentheses for pointer 
-		       dereferencing is critical here */
-		    /* note for 32 bit integers, byte ordering matters */
-		    num = (int) ntohl(*(int *)(buf+1));
-		    break;
-		  default:
-		    break;
-		  }
-                  /* a complete message is received, print it out */
-		  printf("Received the number \"%d\". Client IP address is: %s\n",
-			 num, inet_ntoa(current->client_addr.sin_addr));
-		}
+            /* we got count bytes of data from the client */
+                    /* in general, the amount of data received in a recv()
+                       call may not be a complete application message. it
+                       is important to check the data received against
+                       the message format you expect. if only a part of a
+                       message has been received, you must wait and
+                       receive the rest later when more data is available
+                       to be read */
+            /* in this case, we expect a message where the first byte
+                       stores the number of bytes used to encode a number,
+                       followed by that many bytes holding a numeric value */
+            if (buf[0]+1 != count) {
+                      /* we got only a part of a message, we won't handle this in
+                         this simple example */
+              printf("Message incomplete, something is still being transmitted\n");
+              return 0;
+            } else {
+//              switch(buf[0]) {
+//              case 1:
+//                /* note the type casting here forces signed extension
+//                   to preserve the signedness of the value */
+//                /* note also the use of parentheses for pointer
+//                   dereferencing is critical here */
+//                num = (char) *(char *)(buf+1);
+//                break;
+//              case 2:
+//                /* note the type casting here forces signed extension
+//                   to preserve the signedness of the value */
+//                /* note also the use of parentheses for pointer
+//                   dereferencing is critical here */
+//                /* note for 16 bit integers, byte ordering matters */
+//                num = (short) ntohs(*(short *)(buf+1));
+//                break;
+//              case 4:
+//                /* note the type casting here forces signed extension
+//                   to preserve the signedness of the value */
+//                /* note also the use of parentheses for pointer
+//                   dereferencing is critical here */
+//                /* note for 32 bit integers, byte ordering matters */
+//                num = (int) ntohl(*(int *)(buf+1));
+//                break;
+//              default:
+//                break;
+//              }
+                num = (char) *(char *)(buf+1);
+                      /* a complete message is received, print it out */
+                printf("Received the number \"%d\". Client IP address is: %s\n",
+                 num, inet_ntoa(current->client_addr.sin_addr));
+                count = send(new_sock, num, strlen(num), 0);
+                if (count <= 0) {
+                    /* something is wrong */
+                    if (count == 0) {
+                        printf("Client closed connection. Client IP address is: %s\n", inet_ntoa(current->client_addr.sin_addr));
+                    } else {
+                        perror("error receiving from a client");
+                    }
+
+                    /* connection is closed, clean up */
+                    close(current->socket);
+                    dump(&head, current->socket);
+                }
+                else {}
+            }
 	      }
 	    }
 	  }
