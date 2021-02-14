@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 
         /* our client socket */
         int sock;
-        unsigned int COUNT = 5;
+        // unsigned int COUNT = 5;
 
         /* variables for identifying the server */
         unsigned int server_addr;
@@ -144,18 +144,14 @@ int main(int argc, char **argv) {
                         default:
                                 break;
                 }
-                int p_count = 0;
-                while (p_count < COUNT) {
-                        send(sock, sendbuffer, sendbuffer[0] + 1, 0);
-                        count = recv(sock, buffer, size, 0);
-                        if (count < 0) {
-                                perror("receive failure");
-                                abort();
-                        } else {
-                                int num1 = (char) *(char *) (buffer + 1);
-                                printf("Receive from server %d %d times \n", num1, p_count+1);
-                        }
-                        p_count++;
+                send(sock, sendbuffer, sendbuffer[0] + 1, 0);
+                count = recv(sock, buffer, size, 0);
+                if (count < 0) {
+                        perror("receive failure");
+                        abort();
+                } else {
+                        int num1 = (char) *(char *) (buffer + 1);
+                        printf("Receive from server %d \n", num1);
                 }
         }
 
