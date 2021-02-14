@@ -227,15 +227,23 @@ int main(int argc, char **argv) {
                         for (current = head.next; current; current = next) {
                                 next = current->next;
 
+
                                 /* see if we can now do some previously unsuccessful writes */
                                 if (FD_ISSET(current->socket, &write_set)) {
+                                        printf("write_set");
                                         /* the socket is now ready to take more data */
                                         /* the socket data structure should have information
                                                describing what data is supposed to be sent next.
                                            but here for simplicity, let's say we are just
                                                sending whatever is in the buffer buf
                                              */
-                                        count = send(current->socket, buf, BUF_LEN, MSG_DONTWAIT);
+                                        count = send(current->socket, buf, BUF_LEN+1, MSG_DONTWAIT);
+//                                        count = send(new_sock, buf, BUF_LEN + 1, 0);
+                                        if (count == 0) {
+                                                printf("Client closed connection. Client IP address is: %s\n",
+                                                       inet_ntoa(
+                                                               current->client_addr.sin_addr));
+                                        }
                                         if (count < 0) {
                                                 if (errno == EAGAIN) {
                                                         /* we are trying to dump too much data down the socket,
@@ -246,15 +254,19 @@ int main(int argc, char **argv) {
                                                 } else {
                                                         /* something else is wrong */
                                                 }
+                                        } else {
+                                                printf("Successfully sent back message");
                                         }
                                         /* note that it is important to check count for exactly
                                                how many bytes were actually sent even when there are
                                                no error. send() may send only a portion of the buffer
                                                to be sent.
                                         */
+                                        FD_SET(sock, &read_set);
                                 }
 
                                 if (FD_ISSET(current->socket, &read_set)) {
+                                        printf("read_set\n");
                                         /* we have data from a client */
 
                                         count = recv(current->socket, buf, BUF_LEN, 0);
@@ -293,23 +305,24 @@ int main(int argc, char **argv) {
                                                         printf("Received the number \"%d\". Client IP address is: %s\n",
                                                                num, inet_ntoa(current->client_addr.sin_addr));
 
-                                                        count = send(new_sock, buf, BUF_LEN + 1, 0);
-                                                        if (count <= 0) {
-                                                                /* something is wrong */
-                                                                if (count == 0) {
-                                                                        printf("Client closed connection. Client IP address is: %s\n",
-                                                                               inet_ntoa(
-                                                                                       current->client_addr.sin_addr));
-                                                                } else {
-                                                                        perror("error receiving from a client");
-                                                                }
-
-                                                                /* connection is closed, clean up */
-                                                                close(current->socket);
-                                                                dump(&head, current->socket);
-                                                        } else {
-                                                                printf("Successfully sent back message");
-                                                        }
+                                                        FD_SET(sock, &write_set);
+//                                                        count = send(current->socket, buf, BUF_LEN + 1, 0);
+//                                                        if (count <= 0) {
+//                                                                /* something is wrong */
+//                                                                if (count == 0) {
+//                                                                        printf("Client closed connection. Client IP address is: %s\n",
+//                                                                               inet_ntoa(
+//                                                                                       current->client_addr.sin_addr));
+//                                                                } else {
+//                                                                        perror("error receiving from a client");
+//                                                                }
+//
+//                                                                /* connection is closed, clean up */
+//                                                                close(current->socket);
+//                                                                dump(&head, current->socket);
+//                                                        } else {
+//                                                                printf("Successfully sent back message");
+//                                                        }
                                                 }
                                         }
                                 }
