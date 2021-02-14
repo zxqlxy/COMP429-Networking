@@ -258,12 +258,15 @@ int main(int argc, char **argv) {
                                         /* we have data from a client */
 
                                         count = recv(current->socket, buf, BUF_LEN, 0);
+                                        printf("%d\n", count);
                                         if (count <= 0) {
+
                                                 /* something is wrong */
                                                 if (count == 0) {
                                                         printf("Client closed connection. Client IP address is: %s\n",
                                                                inet_ntoa(current->client_addr.sin_addr));
                                                 } else {
+
                                                         perror("error receiving from a client");
                                                 }
 
@@ -282,12 +285,12 @@ int main(int argc, char **argv) {
                                                 /* in this case, we expect a message where the first byte
                                                            stores the number of bytes used to encode a number,
                                                            followed by that many bytes holding a numeric value */
-                                                if (buf[0] + 1 != count) {
-                                                        /* we got only a part of a message, we won't handle this in
-                                                           this simple example */
-                                                        printf("Message incomplete, something is still being transmitted\n");
-                                                        return 0;
-                                                } else {
+//                                                if (buf[0] + 1 != count) {
+//                                                        /* we got only a part of a message, we won't handle this in
+//                                                           this simple example */
+//                                                        printf("Message incomplete, something is still being transmitted\n");
+//                                                        return 0;
+//                                                } else {
                                                         num = (char) *(char *) (buf + 1);
                                                         /* a complete message is received, print it out */
                                                         printf("Received the number \"%d\". Client IP address is: %s\n",
@@ -308,9 +311,9 @@ int main(int argc, char **argv) {
                                                                 close(current->socket);
                                                                 dump(&head, current->socket);
                                                         } else {
-                                                                printf("Successfully sent back message");
+                                                                printf("Successfully sent back message\n");
                                                         }
-                                                }
+//                                                }
                                         }
                                 }
                         }
