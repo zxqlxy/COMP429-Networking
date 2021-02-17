@@ -89,11 +89,11 @@ int main(int argc, char **argv) {
            message from the server in this example, let's try receiving a
            message from the socket. this call will block until some data
            has been received */
-        count = recv(sock, buffer, size, 0);
-        if (count < 0) {
-                perror("receive failure");
-                abort();
-        }
+        // count = recv(sock, buffer, size, 0);
+        // if (count < 0) {
+        //         perror("receive failure");
+        //         abort();
+        // }
 
 //        /* in this simple example, the message is a string,
 //           we expect the last byte of the string to be 0, i.e. end of string */
@@ -169,21 +169,29 @@ int main(int argc, char **argv) {
         client_msg->tv_sec = time.tv_sec;
         client_msg->tv_usec = time.tv_usec;
         char d[size-10];
-        memset(d, 1, sizeof d);
-        client_msg->data = d;
+        char *dp = d;
+        // printf("success %s\n", d);
+
+        memset(dp, 65 , sizeof(d) + 1);
+
+        // client_msg->data = d;
 //        *sendbuffer = size;
         *(unsigned short *) (sendbuffer) = (unsigned short) htons(size);
         *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
         *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
+
 //        memcpy(sendbuffer, (unsigned short) htons(size), strlen((unsigned short) htons(size)));
 //        memcpy(sendbuffer+2, *(unsigned int) htons(time.tv_sec), strlen((unsigned int) htons(time.tv_sec)));
 //        memcpy(sendbuffer+6, (int) htons(time.tv_usec), strlen((int) htons(time.tv_usec)));
-        memcpy(sendbuffer+10, d, size-10);
+        memcpy(sendbuffer+10, &d, sizeof(d));
         for (int i = 0; i < COUNT; i++) {
-//            stpcpy()
 //            write(sock, client_msg, sizeof(client_msg));
+            *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
+            *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
             send(sock, sendbuffer, size, 0);
-            printf("success\n");
+            fwrite(sendbuffer+10, size-10, 1, stdout);
+            fprintf(stdout, "\n");
+            count = recv(sock, sendbuffer, size, 0);
         }
         close(sock);
         free(buffer);
