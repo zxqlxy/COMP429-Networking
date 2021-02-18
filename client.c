@@ -184,7 +184,8 @@ int main(int argc, char **argv) {
 //        memcpy(sendbuffer+2, *(unsigned int) htons(time.tv_sec), strlen((unsigned int) htons(time.tv_sec)));
 //        memcpy(sendbuffer+6, (int) htons(time.tv_usec), strlen((int) htons(time.tv_usec)));
         memcpy(sendbuffer+10, &d, sizeof(d));
-        for (int i = 0; i < COUNT; i++) {
+        int i;
+        for (i = 0; i < COUNT; i++) {
 //            write(sock, client_msg, sizeof(client_msg));
             *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
             *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
@@ -192,7 +193,9 @@ int main(int argc, char **argv) {
             fwrite(sendbuffer+10, size-10, 1, stdout);
             fprintf(stdout, "\n");
             count = recv(sock, sendbuffer, size, 0);
+            // TODO: Measure
         }
+
         close(sock);
         free(buffer);
         free(sendbuffer);

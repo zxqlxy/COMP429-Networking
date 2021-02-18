@@ -302,8 +302,8 @@ int main(int argc, char **argv) {
                                                         // printf("Received the number \"%d\", \"%d\", \"%d\". Client IP address is: %s\n",
                                                         //        len, sec, usec, inet_ntoa(current->client_addr.sin_addr));
                                                         
-                                                        BUF_LEN = len;
-                                                        size = send(new_sock, buf, BUF_LEN, 0);
+                                                        // BUF_LEN = len;
+                                                        size = send(new_sock, buf, len, 0);
                                                         // printf("send %d\n", size);
                                 
                                                         if (size <= 0) {
