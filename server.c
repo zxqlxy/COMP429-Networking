@@ -9,10 +9,14 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 
+
 /**************************************************/
 /* a few simple linked list functions             */
 /**************************************************/
 
+void create_response(const char *buf, char *result, FILE *fp);
+
+#define MAXLINE  2048
 
 /* A linked list node data structure to maintain application
    information related to a connected socket */
@@ -69,6 +73,7 @@ int main(int argc, char **argv) {
         /* socket and option variables */
         int sock, new_sock, max;
         int optval = 1;
+        int flag = 0;
 
         /* server socket address variables */
         struct sockaddr_in sin, addr;
@@ -87,6 +92,19 @@ int main(int argc, char **argv) {
 
         /* a silly message */
         char *message = "Welcome! COMP/ELEC 429 Students!\n";
+
+        char *www = "www";
+        char *mode = argv[2];
+
+        if (strcmp(www, mode) == 0){
+            flag = 1;
+        }
+
+        char *root_dir = NULL;
+        if (flag == 1) {
+            root_dir = argv[3];
+            fprintf(stdout, "enter %s mode, at %s directory\n", mode, root_dir);
+        }
 
         /* number of bytes sent/received */
         int size;
@@ -215,11 +233,10 @@ int main(int argc, char **argv) {
 
                                 /* let's send a message to the client just for fun */
                                 // size = send(new_sock, message, strlen(message) + 1, 0);
-                                // size = 1;
-                                if (size < 0) {
-                                        perror("error sending message to client");
-                                        abort();
-                                }
+                                // if (size < 0) {
+                                //         perror("error sending message to client");
+                                //         abort();
+                                // }
                         }
 
                         /* check other connected sockets, see if there is
@@ -258,74 +275,170 @@ int main(int argc, char **argv) {
                                 if (FD_ISSET(current->socket, &read_set)) {
                                         /* we have data from a client */
 
-                                        size = recv(current->socket, buf, BUF_LEN, 0);
-                                        // printf("received %d\n", size);
-                                        if (size <= 0) {
+                                        if (flag == 1) {
 
-                                                /* something is wrong */
-                                                if (size == 0) {
-                                                        printf("Client closed connection. Client IP address is: %s\n",
-                                                               inet_ntoa(current->client_addr.sin_addr));
+                                                char method[MAXLINE], uri[MAXLINE], version[MAXLINE];
+                                                char *cursor;
+                                                FILE *fp = NULL;
+
+                                                printf("enter\n");
+
+                                                size = recv(current->socket, buf, BUF_LEN, 0);
+                                                strcpy(buf, "GET /index.txt HTTP/1.1 \r\n\r\n");
+                                                printf("%s\n", buf);
+
+                                                /* Split into method, uri, version */
+                                                sscanf(buf, "%s %s %s\n", method, uri, version);
+
+                                                if (fp != NULL){
+                                                        size_t newLen = fread(buf, sizeof(char), BUF_LEN, fp);
+                                                if ( ferror( fp ) != 0 ) {
+                                                        fputs("Error reading file", stderr);
                                                 } else {
-
-                                                        perror("error receiving from a client");
+                                                        buf[newLen++] = '\0'; /* Just to be safe. */
                                                 }
 
-                                                /* connection is closed, clean up */
-                                                close(current->socket);
-                                                dump(&head, current->socket);
+                                                fclose(fp);
+                                                }
+                                        
+                                                printf("%s %s %s", method, uri, version);
+
+                                                break;
+
+
                                         } else {
-                                                /* we got size bytes of data from the client */
-                                                /* in general, the amount of data received in a recv()
-                                                   call may not be a complete application message. it
-                                                   is important to check the data received against
-                                                   the message format you expect. if only a part of a
-                                                   message has been received, you must wait and
-                                                   receive the rest later when more data is available
-                                                   to be read */
-                                                /* in this case, we expect a message where the first byte
-                                                           stores the number of bytes used to encode a number,
-                                                           followed by that many bytes holding a numeric value */
-//                                                if (buf[0] + 1 != size) {
-//                                                        /* we got only a part of a message, we won't handle this in
-//                                                           this simple example */
-//                                                        printf("Message incomplete, something is still being transmitted\n");
-//                                                        return 0;
-//                                                } else {
-                                                        fwrite(buf+10, size-10, 1, stdout);
-                                                        fprintf(stdout, "\n");
+                                                size = recv(current->socket, buf, BUF_LEN, 0);
+                                                // printf("received %d\n", size);
+                                                if (size <= 0) {
 
-                                                        unsigned short len = ntohs((unsigned short) *(unsigned short *) (buf));
-                                                        // unsigned int sec = ntohl((unsigned int) *(unsigned int *) (buf + 2));
-                                                        // unsigned int usec = ntohl((unsigned int) *(unsigned int *) (buf + 6));
-                                                        /* a complete message is received, print it out */
-                                                        // printf("Received the number \"%d\", \"%d\", \"%d\". Client IP address is: %s\n",
-                                                        //        len, sec, usec, inet_ntoa(current->client_addr.sin_addr));
-                                                        
-                                                        // BUF_LEN = len;
-                                                        size = send(new_sock, buf, len, 0);
-                                                        // printf("send %d\n", size);
-                                
-                                                        if (size <= 0) {
-                                                                /* something is wrong */
-                                                                if (size == 0) {
-                                                                        printf("Client closed connection. Client IP address is: %s\n",
-                                                                               inet_ntoa(
-                                                                                       current->client_addr.sin_addr));
-                                                                } else {
-                                                                        perror("error receiving from a client");
-                                                                }
-
-                                                                /* connection is closed, clean up */
-                                                                close(current->socket);
-                                                                dump(&head, current->socket);
+                                                        /* something is wrong */
+                                                        if (size == 0) {
+                                                                printf("Client closed connection. Client IP address is: %s\n",
+                                                                inet_ntoa(current->client_addr.sin_addr));
                                                         } else {
-                                                                // printf("Successfully sent back message\n");
+
+                                                                perror("error receiving from a client");
                                                         }
-//                                                }
+
+                                                        /* connection is closed, clean up */
+                                                        close(current->socket);
+                                                        dump(&head, current->socket);
+                                                } else {
+                                                        /* we got size bytes of data from the client */
+                                                        /* in general, the amount of data received in a recv()
+                                                        call may not be a complete application message. it
+                                                        is important to check the data received against
+                                                        the message format you expect. if only a part of a
+                                                        message has been received, you must wait and
+                                                        receive the rest later when more data is available
+                                                        to be read */
+                                                        /* in this case, we expect a message where the first byte
+                                                                stores the number of bytes used to encode a number,
+                                                                followed by that many bytes holding a numeric value */
+        //                                                if (buf[0] + 1 != size) {
+        //                                                        /* we got only a part of a message, we won't handle this in
+        //                                                           this simple example */
+        //                                                        printf("Message incomplete, something is still being transmitted\n");
+        //                                                        return 0;
+        //                                                } else {
+                                                                fwrite(buf+10, size-10, 1, stdout);
+                                                                fprintf(stdout, "\n");
+
+                                                                unsigned short len = ntohs((unsigned short) *(unsigned short *) (buf));
+                                                                // unsigned int sec = ntohl((unsigned int) *(unsigned int *) (buf + 2));
+                                                                // unsigned int usec = ntohl((unsigned int) *(unsigned int *) (buf + 6));
+                                                                /* a complete message is received, print it out */
+                                                                // printf("Received the number \"%d\", \"%d\", \"%d\". Client IP address is: %s\n",
+                                                                //        len, sec, usec, inet_ntoa(current->client_addr.sin_addr));
+                                                                
+                                                                size = send(new_sock, buf, len, 0);
+                                                                // printf("send %d\n", size);
+                                        
+                                                                if (size <= 0) {
+                                                                        /* something is wrong */
+                                                                        if (size == 0) {
+                                                                                printf("Client closed connection. Client IP address is: %s\n",
+                                                                                inet_ntoa(
+                                                                                        current->client_addr.sin_addr));
+                                                                        } else {
+                                                                                perror("error receiving from a client");
+                                                                        }
+
+                                                                        /* connection is closed, clean up */
+                                                                        close(current->socket);
+                                                                        dump(&head, current->socket);
+                                                                } else {
+                                                                        // printf("Successfully sent back message\n");
+                                                                }
+        //                                                }
+                                                }
                                         }
+
                                 }
                         }
                 }
         }
+}
+
+
+void
+create_response(const char *buf, char *result, FILE *fp) {
+
+    char method[MAXLINE], uri[MAXLINE], version[MAXLINE];
+    char *cursor;
+
+    int bad = 0;
+    int not_found = 0;
+//     int ok = 0;
+    char *res;
+    char *bad_res = "400 Bad Request";
+    char *not_res = "404 Not Found";
+    char *ok_res = "200 OK";
+
+    strcpy(buf, "GET /index.txt HTTP/1.1 \r\n\r\n");
+        printf("%s\n", buf);
+
+    /* Split into method, uri, version */
+    sscanf(buf, "%s %s %s", method, uri, version);
+
+    /* Split uri into hostname/path */
+    if(strncmp(method, "GET", strlen("GET")) != 0){
+        fprintf(stderr, "Only accept GET request!\n");
+        bad = 1;
+    }
+    else if(strncmp(uri,'../', 3) == 0) {
+        fprintf(stderr, "Cannot go above root directory");
+        bad = 1;
+    }  else if (strncmp(version, "HTTP/1.1", strlen("HTTP/1.1")) !=0 ){
+        fprintf(stderr, "Wrong protocal");
+        bad = 1;
+    }
+
+        if (bad != 1){
+                FILE *fp = fopen(uri, "r");
+
+                if (fp == NULL) {
+                        fprintf(stderr, "File not found");
+                        int not_found = 1;
+                }
+       }
+        if (bad == 1) {
+                res = bad_res;
+        } else if (not_found == 1){
+                res = not_res;
+        } else {
+                res = ok_res;
+        }
+        /* Fill into result array */
+        sprintf(result, "%s", version);
+                // fprintf(stderr, "%s", cursor);
+        sprintf(result, "%s %s", result, res);
+        sprintf(result, "%s %s\r\n", result, version);
+        // *cursor = 0; 
+        //         sprintf(result, "%sHost: %s\r\n", result, uri + strlen("http://"));
+        // sprintf(result, "%s%s", result, user_agent_hdr);
+        // sprintf(result, "%sConnection: close\r\n", result);
+        sprintf(result, "Content-Type: type\r\n", result);
+        printf("%s", result);
+
 }
