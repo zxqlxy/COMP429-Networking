@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
         char *message = "Welcome! COMP/ELEC 429 Students!\n";
 
         /* number of bytes sent/received */
-        int count;
+        int size;
 
         /* numeric value received */
         int num;
@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 
         /* a buffer to read data */
         char *buf;
-        int BUF_LEN = 1000;
+        int BUF_LEN = 65535;
 
         buf = (char *) malloc(BUF_LEN);
 
@@ -214,8 +214,9 @@ int main(int argc, char **argv) {
                                 add(&head, new_sock, addr);
 
                                 /* let's send a message to the client just for fun */
-                                count = send(new_sock, message, strlen(message) + 1, 0);
-                                if (count < 0) {
+                                // size = send(new_sock, message, strlen(message) + 1, 0);
+                                // size = 1;
+                                if (size < 0) {
                                         perror("error sending message to client");
                                         abort();
                                 }
@@ -235,8 +236,8 @@ int main(int argc, char **argv) {
                                            but here for simplicity, let's say we are just
                                                sending whatever is in the buffer buf
                                              */
-                                        count = send(current->socket, buf, BUF_LEN, MSG_DONTWAIT);
-                                        if (count < 0) {
+                                        size = send(current->socket, buf, BUF_LEN, MSG_DONTWAIT);
+                                        if (size < 0) {
                                                 if (errno == EAGAIN) {
                                                         /* we are trying to dump too much data down the socket,
                                                            it cannot take more for the time being
@@ -247,7 +248,7 @@ int main(int argc, char **argv) {
                                                         /* something else is wrong */
                                                 }
                                         }
-                                        /* note that it is important to check count for exactly
+                                        /* note that it is important to check size for exactly
                                                how many bytes were actually sent even when there are
                                                no error. send() may send only a portion of the buffer
                                                to be sent.
@@ -257,13 +258,16 @@ int main(int argc, char **argv) {
                                 if (FD_ISSET(current->socket, &read_set)) {
                                         /* we have data from a client */
 
-                                        count = recv(current->socket, buf, BUF_LEN, 0);
-                                        if (count <= 0) {
+                                        size = recv(current->socket, buf, BUF_LEN, 0);
+                                        // printf("received %d\n", size);
+                                        if (size <= 0) {
+
                                                 /* something is wrong */
-                                                if (count == 0) {
+                                                if (size == 0) {
                                                         printf("Client closed connection. Client IP address is: %s\n",
                                                                inet_ntoa(current->client_addr.sin_addr));
                                                 } else {
+
                                                         perror("error receiving from a client");
                                                 }
 
@@ -271,7 +275,7 @@ int main(int argc, char **argv) {
                                                 close(current->socket);
                                                 dump(&head, current->socket);
                                         } else {
-                                                /* we got count bytes of data from the client */
+                                                /* we got size bytes of data from the client */
                                                 /* in general, the amount of data received in a recv()
                                                    call may not be a complete application message. it
                                                    is important to check the data received against
@@ -282,21 +286,29 @@ int main(int argc, char **argv) {
                                                 /* in this case, we expect a message where the first byte
                                                            stores the number of bytes used to encode a number,
                                                            followed by that many bytes holding a numeric value */
-                                                if (buf[0] + 1 != count) {
-                                                        /* we got only a part of a message, we won't handle this in
-                                                           this simple example */
-                                                        printf("Message incomplete, something is still being transmitted\n");
-                                                        return 0;
-                                                } else {
-                                                        num = (char) *(char *) (buf + 1);
-                                                        /* a complete message is received, print it out */
-                                                        printf("Received the number \"%d\". Client IP address is: %s\n",
-                                                               num, inet_ntoa(current->client_addr.sin_addr));
+//                                                if (buf[0] + 1 != size) {
+//                                                        /* we got only a part of a message, we won't handle this in
+//                                                           this simple example */
+//                                                        printf("Message incomplete, something is still being transmitted\n");
+//                                                        return 0;
+//                                                } else {
+                                                        fwrite(buf+10, size-10, 1, stdout);
+                                                        fprintf(stdout, "\n");
 
-                                                        count = send(new_sock, buf, BUF_LEN + 1, 0);
-                                                        if (count <= 0) {
+                                                        unsigned short len = ntohs((unsigned short) *(unsigned short *) (buf));
+                                                        // unsigned int sec = ntohl((unsigned int) *(unsigned int *) (buf + 2));
+                                                        // unsigned int usec = ntohl((unsigned int) *(unsigned int *) (buf + 6));
+                                                        /* a complete message is received, print it out */
+                                                        // printf("Received the number \"%d\", \"%d\", \"%d\". Client IP address is: %s\n",
+                                                        //        len, sec, usec, inet_ntoa(current->client_addr.sin_addr));
+                                                        
+                                                        BUF_LEN = len;
+                                                        size = send(new_sock, buf, BUF_LEN, 0);
+                                                        // printf("send %d\n", size);
+                                
+                                                        if (size <= 0) {
                                                                 /* something is wrong */
-                                                                if (count == 0) {
+                                                                if (size == 0) {
                                                                         printf("Client closed connection. Client IP address is: %s\n",
                                                                                inet_ntoa(
                                                                                        current->client_addr.sin_addr));
@@ -308,9 +320,9 @@ int main(int argc, char **argv) {
                                                                 close(current->socket);
                                                                 dump(&head, current->socket);
                                                         } else {
-                                                                printf("Successfully sent back message");
+                                                                // printf("Successfully sent back message\n");
                                                         }
-                                                }
+//                                                }
                                         }
                                 }
                         }
