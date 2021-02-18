@@ -13,7 +13,7 @@
 /* a few simple linked list functions             */
 /**************************************************/
 
-void create_response(char *buf, char *result, FILE *fp, char *root_dir);
+FILE * create_response(char *buf, char *result, FILE *fp, char *root_dir);
 
 #define MAXLINE 2048
 
@@ -308,8 +308,8 @@ int main(int argc, char **argv)
 
                                                 // char method[MAXLINE], uri[MAXLINE], version[MAXLINE];
                                                 // char *cursor;
-                                                FILE *fp;
-                                                size_t newLen;
+                                                FILE *fp = NULL;
+                                                size_t newLen = 0;
                                                 // char *result = ma;
                                                 // fp = fopen("name_addr.c", "r");
 
@@ -326,21 +326,25 @@ int main(int argc, char **argv)
                                                 // /* Split into method, uri, version */
                                                 // sscanf(buf, "%s %s %s\n", method, uri, version);
 
-                                                create_response(buf, result, fp, root_dir);
-
+                                                fp = create_response(buf, result, fp, root_dir);
+                                                if (fp == NULL)
+                                                        fprintf(stdout, "FP is NULL");
                                                 if (fp != NULL){
-                                                        newLen = fread(buf, sizeof(char), BUF_LEN, fp) + sizeof(result);
+                                                        fprintf(stdout, "FP is not NULL\n");
+                                                        newLen = fread(result + 42, sizeof(char), 1000, fp) + 42;
+                                                        fprintf(stdout, "%ld", newLen);
+
                                                 if ( ferror( fp ) != 0 ) {
                                                         fputs("Error reading file", stderr);
                                                 } else {
-                                                        buf[newLen++] = '\0'; /* Just to be safe. */
+                                                        result[newLen++] = '\0'; /* Just to be safe. */
                                                 }}
-                                                fwrite(buf, newLen+1, 1, stdout);
-                                                size = send(new_sock, buf, newLen+1, 0);
+                                                fprintf(stdout, "out %s", result);
+                                                size = send(new_sock, result, newLen+1, 0);
                                                 // fclose(fp);
                                                 // }
                                                 // fclose(fp);
-                                                return 0;
+                                                // return 0;
                                         }
                                         else
                                         {
@@ -428,7 +432,7 @@ int main(int argc, char **argv)
         }
 }
 
-void create_response(char *buf, char *result, FILE *fp, char *root_dir)
+FILE*  create_response(char *buf, char *result, FILE *fp, char *root_dir)
 {
 
         char method[MAXLINE], uri[MAXLINE], version[MAXLINE];
@@ -504,5 +508,6 @@ void create_response(char *buf, char *result, FILE *fp, char *root_dir)
         // sprintf(result, "%s%s", result, user_agent_hdr);
         // sprintf(result, "%sConnection: close\r\n", result);
         sprintf(result, "%sContent-Type: text/html\r\n", result);
-        printf("create response: \n%s \n, size is ", result);
+        fprintf(stdout, "create response: \n%s \n, size is \n\n\n", result);
+        return fp;
 }
