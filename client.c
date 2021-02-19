@@ -11,12 +11,6 @@
 
 /* simple client, takes two parameters, the server domain name,
    and the server port number */
-struct msg {
-        unsigned short size;
-        unsigned int tv_sec;
-        unsigned int tv_usec;
-        char *data;
-};
 
 int main(int argc, char **argv) {
 
@@ -43,22 +37,15 @@ int main(int argc, char **argv) {
         unsigned short size = atoi(argv[3]);
         unsigned int COUNT = atoi(argv[4]);
 
-        char *buffer, *sendbuffer;
+        char *sendbuffer;
         int count;
 //        int num;
 
         /* allocate a memory buffer in the heap */
         /* putting a buffer on the stack like:
 
-               char buffer[500];
-
            leaves the potential for
            buffer overflow vulnerability */
-        buffer = (char *) malloc(size);
-        if (!buffer) {
-                perror("failed to allocated buffer");
-                abort();
-        }
 
         sendbuffer = (char *) malloc(size);
         if (!sendbuffer) {
@@ -164,18 +151,11 @@ int main(int argc, char **argv) {
 //        }
         struct timeval time;
         gettimeofday(&time, NULL);
-        struct msg *client_msg = malloc(size);
-        client_msg->size = size;
-        client_msg->tv_sec = time.tv_sec;
-        client_msg->tv_usec = time.tv_usec;
         char d[size-10];
         char *dp = d;
-        // printf("success %s\n", d);
 
         memset(dp, 65 , sizeof(d) + 1);
 
-        // client_msg->data = d;
-//        *sendbuffer = size;
         *(unsigned short *) (sendbuffer) = (unsigned short) htons(size);
         *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
         *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
@@ -184,17 +164,18 @@ int main(int argc, char **argv) {
 //        memcpy(sendbuffer+2, *(unsigned int) htons(time.tv_sec), strlen((unsigned int) htons(time.tv_sec)));
 //        memcpy(sendbuffer+6, (int) htons(time.tv_usec), strlen((int) htons(time.tv_usec)));
         memcpy(sendbuffer+10, &d, sizeof(d));
-        for (int i = 0; i < COUNT; i++) {
-//            write(sock, client_msg, sizeof(client_msg));
+        int i;
+        for (i = 0; i < COUNT; i++) {
             *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
             *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
             send(sock, sendbuffer, size, 0);
             fwrite(sendbuffer+10, size-10, 1, stdout);
             fprintf(stdout, "\n");
             count = recv(sock, sendbuffer, size, 0);
+            // TODO: Measure
         }
+
         close(sock);
-        free(buffer);
         free(sendbuffer);
         return 0;
 }
