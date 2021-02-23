@@ -311,40 +311,78 @@ int main(int argc, char **argv)
                                                 FILE *fp = NULL;
                                                 size_t newLen = 0;
                                                 // char *result = ma;
-                                                // fp = fopen("name_addr.c", "r");
-
-                                                // if (fp == NULL) {
-                                                //         perror("File not found\n");
-                                                //         // not_found = 1;
-                                                // }
-                                                // printf("enter\n");
+//                                                 fp = fopen("name_addr.c", "r");
+//
+//                                                 if (fp == NULL) {
+//                                                         perror("File not found\n");
+//                                                         // not_found = 1;
+//                                                 }
+//                                                 printf("enter\n");
 
                                                 size = recv(current->socket, buf, BUF_LEN, 0);
-                                                // strcpy(buf, "GET /index.txt HTTP/1.1 \r\n\r\n");
-                                                // printf("%s\n", buf);
+                                                if (size <= 0)
+                                                {
 
-                                                // /* Split into method, uri, version */
-                                                // sscanf(buf, "%s %s %s\n", method, uri, version);
+                                                    /* something is wrong */
+                                                    if (size == 0)
+                                                    {
+                                                        printf("Client closed connection. Client IP address is: %s\n",
+                                                               inet_ntoa(current->client_addr.sin_addr));
+                                                    }
+                                                    else
+                                                    {
 
-                                                fp = create_response(buf, result, fp, root_dir);
-                                                if (fp == NULL)
-                                                        fprintf(stdout, "FP is NULL");
-                                                if (fp != NULL){
-                                                        fprintf(stdout, "FP is not NULL\n");
-                                                        newLen = fread(result + 42, sizeof(char), 1000, fp) + 42;
-                                                        fprintf(stdout, "%ld", newLen);
+                                                        perror("error receiving from a client");
+                                                    }
 
-                                                if ( ferror( fp ) != 0 ) {
-                                                        fputs("Error reading file", stderr);
+                                                    /* connection is closed, clean up */
+                                                    close(current->socket);
+                                                    dump(&head, current->socket);
                                                 } else {
-                                                        result[newLen++] = '\0'; /* Just to be safe. */
-                                                }}
-                                                fprintf(stdout, "out %s", result);
-                                                size = send(new_sock, result, newLen+1, 0);
-                                                // fclose(fp);
-                                                // }
-                                                // fclose(fp);
-                                                // return 0;
+//                                                 printf("%s\n", buf);
+
+                                                    // /* Split into method, uri, version */
+                                                    // sscanf(buf, "%s %s %s\n", method, uri, version);
+
+                                                    fp = create_response(buf, result, fp, root_dir);
+                                                    if (fp == NULL) {
+                                                        newLen = strlen(result);
+                                                        fprintf(stdout, "FP is NULL\n");
+                                                    }
+                                                    if (fp != NULL) {
+                                                        fprintf(stdout, "FP is not NULL\n");
+                                                        fseek(fp, 0, SEEK_END);
+                                                        int length = (int)ftell(fp);
+                                                        rewind(fp);
+                                                        fprintf(stdout, "result: %s\n", result);
+                                                        fprintf(stdout, "%ld", newLen);
+                                                        newLen = fread(result + strlen(result), sizeof(char), length, fp)+strlen(result);
+                                                        if ( ferror( fp ) != 0 ) {
+                                                            fputs("Error reading file", stderr);
+                                                        } else {
+                                                            result[newLen++] = '\0'; /* Just to be safe. */
+                                                        }
+                                                        fclose(fp);
+                                                    }
+
+                                                    fprintf(stdout, "out\n %s", result);
+                                                    fprintf(stdout, "newLen %d\n", newLen);
+                                                    size = send(new_sock, result, newLen+1, 0);
+                                                    if (size <= 0) {
+                                                        /* something is wrong */
+                                                        if (size == 0) {
+                                                            printf("Client closed connection. Client IP address is: %s\n",
+                                                                   inet_ntoa(current->client_addr.sin_addr));
+                                                        } else {
+                                                            perror("error receiving from a client");
+                                                        }
+                                                        /* connection is closed, clean up */
+                                                        close(current->socket);
+                                                        dump(&head, current->socket);
+                                                    } else {
+//                                                         printf("Successfully sent the file\n");
+                                                    }
+                                                }
                                         }
                                         else
                                         {
@@ -447,8 +485,8 @@ FILE*  create_response(char *buf, char *result, FILE *fp, char *root_dir)
         char *ok_res = "200 OK";
         char file_name[1024];
 
-        strcpy(buf, "GET /name_addr.c HTTP/1.1 \r\n\r\n");
-        fprintf(stderr, "%s\n", buf);
+//        strcpy(buf, "GET /addr.c HTTP/1.1 \r\n\r\n");
+        fprintf(stderr, "buf: %s\n", buf);
 
         /* Split into method, uri, version */
         sscanf(buf, "%s %s %s", method, uri, version);

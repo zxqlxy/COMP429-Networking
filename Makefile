@@ -5,7 +5,7 @@ CFLAGS	 	= -Wall -g
 LDFLAGS	 	= 
 DEFS 	 	=
 
-all:	server client name_addr server_num client_num
+all:	server client name_addr server_num client_num client_web
 
 server_num: server.c
 	$(CC) $(DEFS) $(CFLAGS) $(LIB) -o server_num server_num.c
@@ -22,6 +22,9 @@ server: server.c
 client: client.c
 	$(CC) $(DEFS) $(CFLAGS) $(LIB) -o client client.c
 
+client_web: client_web.c
+	$(CC) $(DEFS) $(CFLAGS) $(LIB) -o client_web client_web.c
+
 clean:
 	rm -f *.o
 	rm -f *~
@@ -31,3 +34,4 @@ clean:
 	rm -f server
 	rm -f client
 	rm -f name_addr
+	rm -f client_web
