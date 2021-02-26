@@ -153,16 +153,23 @@ int main(int argc, char **argv) {
 
         //Measure the network link bandwidth
         struct timeval starttime;
+        struct timeval starttime1;
         struct timeval *endtime;
         endtime = (struct timeval *) malloc(sizeof(struct timeval));
         // char *endtime;
         // endtime = (char *) malloc(8);
         // unsigned int end_sec, end_usec;
         char measurebyte = 'a';
-        unsigned int long dependent_delay;
+        unsigned int long independent_delay;
 
-        send(sock, &measurebyte, sizeof(measurebyte), 0);
+
+
+//        starttime = (struct timeval *) malloc(sizeof(struct timeval));
+//        starttime1 = (struct timeval *) malloc(sizeof(struct timeval));
+
         gettimeofday(&starttime, NULL);
+        send(sock, &measurebyte, sizeof(measurebyte), 0);
+        gettimeofday(&starttime1, NULL);
         count = recv(sock, endtime, sizeof(struct timeval), 0);
         if (count < 0) {
                 perror("receive failure");
@@ -172,7 +179,8 @@ int main(int argc, char **argv) {
                 endtime->tv_usec = ntohl(endtime->tv_usec);
                 // end_sec = ntohl((unsigned int) endtime);
                 // end_usec = ntohl((unsigned int) (endtime + 4));
-                dependent_delay = ((endtime->tv_sec - starttime.tv_sec) * 1000000L) + endtime->tv_usec - starttime.tv_usec;    
+                independent_delay = ((endtime->tv_sec) * 1000000L + (endtime->tv_usec))*2 +
+                        ((starttime1.tv_sec - starttime1.tv_sec) * 1000000L + (starttime1.tv_usec - starttime1.tv_usec)) * 2;
         }
         free(endtime);
 
@@ -215,10 +223,10 @@ int main(int argc, char **argv) {
         //Calculate independent delay
         measured_delay = measured_delay / COUNT;
         // Assume c to s is the same as s to c
-        unsigned int long independent_delay = measured_delay - dependent_delay * 2; 
-        unsigned int measured_bandwidth = (size * 2 * 8) / measured_delay;
+        unsigned int long measured_bandwidth = (size * 2 * 8) / measured_delay;
         printf("The independent delay is %ld microseconds.\n", independent_delay);
-        printf("The measured bandwidth is %f Mbps. \n", measured_bandwidth * 1000000L);
+        printf("Measured delay is %ld microseconds.\n", measured_delay);
+        printf("The measured bandwidth is %ld Mbps. \n", measured_bandwidth * 1000000L);
 
         return 0;
 }

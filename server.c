@@ -396,8 +396,11 @@ int main(int argc, char **argv)
                                         }
                                         else
                                         {
+                                                struct timeval server_recv_start;
+                                                struct timeval server_recv_end;
+                                                gettimeofday(&server_recv_start, NULL);
                                                 size = recv(current->socket, buf, BUF_LEN, 0);
-                                                // printf("received %d\n", size);
+                                                gettimeofday(&server_recv_end, NULL);
                                                 if (size <= 0)
                                                 {
 
@@ -439,8 +442,8 @@ int main(int argc, char **argv)
                                                         if (size == 1) {
                                                                 //This message is used to measure ideal bandwidth
                                                                 //Return the timestamp of the recv
-                                                                struct timeval recvtime;
-                                                                gettimeofday(&recvtime, NULL);
+//                                                                struct timeval recvtime;
+//                                                                gettimeofday(&recvtime, NULL);
 
                                                                 // char *sendbuffer;
                                                                 // sendbuffer = (char *) malloc(8);
@@ -450,9 +453,12 @@ int main(int argc, char **argv)
                                                                 // }
                                                                 // *(unsigned int *) sendbuffer = (unsigned int) htonl(recvtime.tv_sec);
                                                                 // *(unsigned int *) (sendbuffer + 4) = (unsigned int) htonl(recvtime.tv_usec);
-                                                                recvtime.tv_sec = htonl(recvtime.tv_sec);
-                                                                recvtime.tv_usec = htonl(recvtime.tv_usec);
-                                                                int sendsize = send(new_sock, &recvtime, sizeof(struct timeval), 0);
+
+                                                                server_recv_end.tv_sec = server_recv_end.tv_sec - server_recv_start.tv_sec;
+                                                                server_recv_end.tv_usec = server_recv_end.tv_usec - server_recv_start.tv_usec;
+                                                                server_recv_end.tv_sec = htonl(server_recv_end.tv_sec);
+                                                                server_recv_end.tv_usec = htonl(server_recv_end.tv_usec);
+                                                                int sendsize = send(new_sock, &server_recv_end, sizeof(struct timeval), 0);
                                                                 if (sendsize < 0) {
                                                                         printf("Send failed");
                                                                 }
@@ -504,7 +510,8 @@ int main(int argc, char **argv)
         }
 }
 
-FILE*  create_response(char *buf, char *result, FILE *fp, char *root_dir)
+FILE*
+create_response(char *buf, char *result, FILE *fp, char *root_dir)
 {
 
         char method[MAXLINE], uri[MAXLINE], version[MAXLINE];

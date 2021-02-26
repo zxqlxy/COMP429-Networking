@@ -85,14 +85,9 @@ int main(int argc, char **argv) {
         struct timeval time_out;
         int select_retval;
 
-        /* a silly message */
-        char *message = "Welcome! COMP/ELEC 429 Students!\n";
-
         /* number of bytes sent/received */
         int count;
 
-        /* numeric value received */
-        int num;
 
         /* linked list for keeping track of connected sockets */
         struct node head;
@@ -305,24 +300,24 @@ int main(int argc, char **argv) {
                                                         printf("Received the number \"%d\". Client IP address is: %s\n",
                                                                num, inet_ntoa(current->client_addr.sin_addr));
 
-                                                        FD_SET(sock, &write_set);
-//                                                        count = send(current->socket, buf, BUF_LEN + 1, 0);
-//                                                        if (count <= 0) {
-//                                                                /* something is wrong */
-//                                                                if (count == 0) {
-//                                                                        printf("Client closed connection. Client IP address is: %s\n",
-//                                                                               inet_ntoa(
-//                                                                                       current->client_addr.sin_addr));
-//                                                                } else {
-//                                                                        perror("error receiving from a client");
-//                                                                }
-//
-//                                                                /* connection is closed, clean up */
-//                                                                close(current->socket);
-//                                                                dump(&head, current->socket);
-//                                                        } else {
-//                                                                printf("Successfully sent back message");
-//                                                        }
+//                                                        FD_SET(sock, &write_set);
+                                                        count = send(current->socket, buf, BUF_LEN + 1, 0);
+                                                        if (count <= 0) {
+                                                                /* something is wrong */
+                                                                if (count == 0) {
+                                                                        printf("Client closed connection. Client IP address is: %s\n",
+                                                                               inet_ntoa(
+                                                                                       current->client_addr.sin_addr));
+                                                                } else {
+                                                                        perror("error receiving from a client");
+                                                                }
+
+                                                                /* connection is closed, clean up */
+                                                                close(current->socket);
+                                                                dump(&head, current->socket);
+                                                        } else {
+                                                                printf("Successfully sent back message");
+                                                        }
                                                 }
                                         }
                                 }

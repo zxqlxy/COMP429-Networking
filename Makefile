@@ -7,11 +7,11 @@ DEFS 	 	=
 
 all:	server client name_addr server_num client_num client_web
 
-server_num: server.c
-	$(CC) $(DEFS) $(CFLAGS) $(LIB) -o server_num server_num.c
-
-client_num: client_num.c
-	$(CC) $(DEFS) $(CFLAGS) $(LIB) -o client_num client_num.c
+# server_num: server.c
+# 	$(CC) $(DEFS) $(CFLAGS) $(LIB) -o server_num server_num.c
+#
+# client_num: client_num.c
+# 	$(CC) $(DEFS) $(CFLAGS) $(LIB) -o client_num client_num.c
 
 name_addr:	name_addr.c
 	$(CC) $(DEFS) $(CFLAGS) $(LIB) -o name_addr name_addr.c
