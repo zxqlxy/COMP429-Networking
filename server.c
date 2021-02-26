@@ -8,6 +8,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <sys/time.h>
+
 
 /**************************************************/
 /* a few simple linked list functions             */
@@ -101,18 +103,26 @@ int main(int argc, char **argv)
 
         char *www = "www";
         char *mode = argv[2];
-
-        if (strcmp(www, mode) == 0)
-        {
-                flag = 1;
-        }
-
         char *root_dir = NULL;
-        if (flag == 1)
-        {
-                root_dir = argv[3];
-                fprintf(stdout, "enter %s mode, at %s directory\n", mode, root_dir);
+
+        if (argc > 2) {
+                //Is in web server mode
+                if (strcmp(www, mode) == 0)
+                {
+                        flag = 1;
+                }
+
+                if (flag == 1)
+                {
+                        root_dir = argv[3];
+                        fprintf(stdout, "enter %s mode, at %s directory\n", mode, root_dir);
+                }
+
         }
+
+
+
+
 
         /* number of bytes sent/received */
         int size;
@@ -426,8 +436,31 @@ int main(int argc, char **argv)
                                                         //                                                        printf("Message incomplete, something is still being transmitted\n");
                                                         //                                                        return 0;
                                                         //                                                } else {
-                                                        fwrite(buf + 10, size - 10, 1, stdout);
-                                                        fprintf(stdout, "\n");
+                                                        if (size == 1) {
+                                                                //This message is used to measure ideal bandwidth
+                                                                //Return the timestamp of the recv
+                                                                struct timeval recvtime;
+                                                                gettimeofday(&recvtime, NULL);
+
+                                                                // char *sendbuffer;
+                                                                // sendbuffer = (char *) malloc(8);
+                                                                // if (!sendbuffer) {
+                                                                //         perror("failed to allocated sendbuffer");
+                                                                //         abort();
+                                                                // }
+                                                                // *(unsigned int *) sendbuffer = (unsigned int) htonl(recvtime.tv_sec);
+                                                                // *(unsigned int *) (sendbuffer + 4) = (unsigned int) htonl(recvtime.tv_usec);
+                                                                recvtime.tv_sec = htonl(recvtime.tv_sec);
+                                                                recvtime.tv_usec = htonl(recvtime.tv_usec);
+                                                                int sendsize = send(new_sock, &recvtime, sizeof(struct timeval), 0);
+                                                                if (sendsize < 0) {
+                                                                        printf("Send failed");
+                                                                }
+                                                                // free(sendbuffer);
+
+                                                        } else {
+                                                                fwrite(buf + 10, size - 10, 1, stdout);
+                                                                fprintf(stdout, "\n");
 
                                                         unsigned short len = ntohs((unsigned short)*(unsigned short *)(buf));
                                                         // unsigned int sec = ntohl((unsigned int) *(unsigned int *) (buf + 2));
@@ -460,6 +493,7 @@ int main(int argc, char **argv)
                                                         else
                                                         {
                                                                 // printf("Successfully sent back message\n");
+                                                        }
                                                         }
                                                         //                                                }
                                                 }

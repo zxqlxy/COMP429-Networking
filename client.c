@@ -149,28 +149,75 @@ int main(int argc, char **argv) {
 //                        printf("Receive from server %d \n", num1);
 //                }
 //        }
-        struct timeval time;
-        gettimeofday(&time, NULL);
+
+
+        //Measure the network link bandwidth
+        struct timeval starttime;
+        struct timeval *endtime;
+        endtime = (struct timeval *) malloc(sizeof(struct timeval));
+        // char *endtime;
+        // endtime = (char *) malloc(8);
+        // unsigned int end_sec, end_usec;
+        char measurebyte = 'a';
+        unsigned int long delay;
+
+        send(sock, &measurebyte, sizeof(measurebyte), 0);
+        gettimeofday(&starttime, NULL);
+        count = recv(sock, endtime, sizeof(struct timeval), 0);
+        if (count < 0) {
+                perror("receive failure");
+                abort();
+        } else {
+                endtime->tv_sec = ntohl(endtime->tv_sec);
+                endtime->tv_usec = ntohl(endtime->tv_usec);
+                // end_sec = ntohl((unsigned int) endtime);
+                // end_usec = ntohl((unsigned int) (endtime + 4));
+                delay = ((endtime->tv_sec - starttime.tv_sec) * 1000000L) + endtime->tv_usec - starttime.tv_usec;    
+        }
+        free(endtime);
+
+
+
+
+
+        struct timeval time, recvtime;
+        unsigned int long measured_delay = 0;
+        // gettimeofday(&time, NULL);
         char d[size-10];
         char *dp = d;
 
         memset(dp, 65 , sizeof(d) + 1);
 
         *(unsigned short *) (sendbuffer) = (unsigned short) htons(size);
-        *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
-        *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
+        // *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
+        // *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
         memcpy(sendbuffer+10, &d, sizeof(d));
         int i;
         for (i = 0; i < COUNT; i++) {
-            *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
-            *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
-            send(sock, sendbuffer, size, 0);
-            fwrite(sendbuffer+10, size-10, 1, stdout);
-            fprintf(stdout, "\n");
-            count = recv(sock, sendbuffer, size, 0);
-            // TODO: Measure
+                gettimeofday(&time, NULL);
+                *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
+                *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
+                send(sock, sendbuffer, size, 0);
+                fwrite(sendbuffer+10, size-10, 1, stdout);
+                fprintf(stdout, "\n");
+                count = recv(sock, sendbuffer, size, 0);
+               if (count < 0) {
+                       perror("receive failure");
+                       abort();
+               }
+
+                // TODO: Measure
+                gettimeofday(&recvtime, NULL);
+                measured_delay += ((recvtime.tv_sec - time.tv_sec) * 1000000L) + recvtime.tv_usec - time.tv_usec;
         }
         close(sock);
         free(sendbuffer);
+        //Calculate independent delay
+        measured_delay = measured_delay / COUNT;
+        unsigned int long independent_delay = measured_delay - delay * 2;
+        unsigned int measured_bandwidth = (size * 2 * 8) / measured_delay;
+        printf("The independent delay is %ld microseconds.\n", independent_delay);
+        printf("The measured bandwidth is %f Mbps. \n", measured_bandwidth * 1000000L);
+
         return 0;
 }
