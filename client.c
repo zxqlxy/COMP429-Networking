@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
         // endtime = (char *) malloc(8);
         // unsigned int end_sec, end_usec;
         char measurebyte = 'a';
-        unsigned int long delay;
+        unsigned int long dependent_delay;
 
         send(sock, &measurebyte, sizeof(measurebyte), 0);
         gettimeofday(&starttime, NULL);
@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
                 endtime->tv_usec = ntohl(endtime->tv_usec);
                 // end_sec = ntohl((unsigned int) endtime);
                 // end_usec = ntohl((unsigned int) (endtime + 4));
-                delay = ((endtime->tv_sec - starttime.tv_sec) * 1000000L) + endtime->tv_usec - starttime.tv_usec;    
+                dependent_delay = ((endtime->tv_sec - starttime.tv_sec) * 1000000L) + endtime->tv_usec - starttime.tv_usec;    
         }
         free(endtime);
 
@@ -214,7 +214,8 @@ int main(int argc, char **argv) {
         free(sendbuffer);
         //Calculate independent delay
         measured_delay = measured_delay / COUNT;
-        unsigned int long independent_delay = measured_delay - delay * 2;
+        // Assume c to s is the same as s to c
+        unsigned int long independent_delay = measured_delay - dependent_delay * 2; 
         unsigned int measured_bandwidth = (size * 2 * 8) / measured_delay;
         printf("The independent delay is %ld microseconds.\n", independent_delay);
         printf("The measured bandwidth is %f Mbps. \n", measured_bandwidth * 1000000L);
