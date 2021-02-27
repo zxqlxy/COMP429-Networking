@@ -1,0 +1,12 @@
+# Project 1 - Ping-Pong and World Wide Web
+
+Zoey Ling   zl64
+Xinyun Liu  xl73
+Alex Guo
+Jiayi Li
+
+
+1. 看看server 394， client 72行那个是否需要, 直接在part3.pdf里说明comment掉的code在哪吧
+2. measure the time it takes to send 65,535, not one byte。我们简单测了一下，发现跟老师的不对
+1.5ms 699mbps
+

@@ -1,6 +1,8 @@
 # Prerequisites
 *.d
 .DS_Store
+client_num
+server_num
 
 # Object files
 *.o

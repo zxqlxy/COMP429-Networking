@@ -81,6 +81,7 @@ int main(int argc, char **argv)
         /* socket and option variables */
         int sock, new_sock, max;
         int optval = 1;
+        /* flag of www mode */
         int flag = 0;
 
         /* server socket address variables */
@@ -98,9 +99,6 @@ int main(int argc, char **argv)
         struct timeval time_out;
         int select_retval;
 
-        /* a silly message */
-        char *message = "Welcome! COMP/ELEC 429 Students!\n";
-
         char *www = "www";
         char *mode = argv[2];
         char *root_dir = NULL;
@@ -108,27 +106,17 @@ int main(int argc, char **argv)
         if (argc > 2) {
                 //Is in web server mode
                 if (strcmp(www, mode) == 0)
-                {
                         flag = 1;
-                }
 
-                if (flag == 1)
-                {
+                if (flag == 1){
                         root_dir = argv[3];
                         fprintf(stdout, "enter %s mode, at %s directory\n", mode, root_dir);
                 }
 
         }
 
-
-
-
-
         /* number of bytes sent/received */
         int size;
-
-        /* numeric value received */
-        int num;
 
         /* linked list for keeping track of connected sockets */
         struct node head;
@@ -261,13 +249,6 @@ int main(int argc, char **argv)
 
                                 /* remember this client connection in our linked list */
                                 add(&head, new_sock, addr);
-
-                                /* let's send a message to the client just for fun */
-                                // size = send(new_sock, message, strlen(message) + 1, 0);
-                                // if (size < 0) {
-                                //         perror("error sending message to client");
-                                //         abort();
-                                // }
                         }
 
                         /* check other connected sockets, see if there is
@@ -316,18 +297,8 @@ int main(int argc, char **argv)
                                         if (flag == 1)
                                         {
 
-                                                // char method[MAXLINE], uri[MAXLINE], version[MAXLINE];
-                                                // char *cursor;
                                                 FILE *fp = NULL;
                                                 size_t newLen = 0;
-                                                // char *result = ma;
-//                                                 fp = fopen("name_addr.c", "r");
-//
-//                                                 if (fp == NULL) {
-//                                                         perror("File not found\n");
-//                                                         // not_found = 1;
-//                                                 }
-//                                                 printf("enter\n");
 
                                                 size = recv(current->socket, buf, BUF_LEN, 0);
                                                 if (size <= 0)
@@ -341,7 +312,6 @@ int main(int argc, char **argv)
                                                     }
                                                     else
                                                     {
-
                                                         perror("error receiving from a client");
                                                     }
 
@@ -349,10 +319,6 @@ int main(int argc, char **argv)
                                                     close(current->socket);
                                                     dump(&head, current->socket);
                                                 } else {
-//                                                 printf("%s\n", buf);
-
-                                                    // /* Split into method, uri, version */
-                                                    // sscanf(buf, "%s %s %s\n", method, uri, version);
 
                                                     fp = create_response(buf, result, fp, root_dir);
                                                     if (fp == NULL) {
@@ -364,8 +330,6 @@ int main(int argc, char **argv)
                                                         fseek(fp, 0, SEEK_END);
                                                         int length = (int)ftell(fp);
                                                         rewind(fp);
-                                                        fprintf(stdout, "result: %s\n", result);
-                                                        fprintf(stdout, "%ld", newLen);
                                                         newLen = fread(result + strlen(result), sizeof(char), length, fp)+strlen(result);
                                                         if ( ferror( fp ) != 0 ) {
                                                             fputs("Error reading file", stderr);
@@ -375,8 +339,6 @@ int main(int argc, char **argv)
                                                         fclose(fp);
                                                     }
 
-                                                    fprintf(stdout, "out\n %s", result);
-                                                    fprintf(stdout, "newLen %d\n", newLen);
                                                     size = send(new_sock, result, newLen+1, 0);
                                                     if (size <= 0) {
                                                         /* something is wrong */
@@ -390,7 +352,7 @@ int main(int argc, char **argv)
                                                         close(current->socket);
                                                         dump(&head, current->socket);
                                                     } else {
-//                                                         printf("Successfully sent the file\n");
+                                                        printf("Successfully sent the file\n");
                                                     }
                                                 }
                                         }
@@ -401,6 +363,7 @@ int main(int argc, char **argv)
                                                 gettimeofday(&server_recv_start, NULL);
                                                 size = recv(current->socket, buf, BUF_LEN, 0);
                                                 gettimeofday(&server_recv_end, NULL);
+                                                unsigned short len = ntohs((unsigned short)*(unsigned short *)(buf));
                                                 if (size <= 0)
                                                 {
 
@@ -412,7 +375,6 @@ int main(int argc, char **argv)
                                                         }
                                                         else
                                                         {
-
                                                                 perror("error receiving from a client");
                                                         }
 
@@ -430,30 +392,12 @@ int main(int argc, char **argv)
                                                         message has been received, you must wait and
                                                         receive the rest later when more data is available
                                                         to be read */
-                                                        /* in this case, we expect a message where the first byte
-                                                                stores the number of bytes used to encode a number,
-                                                                followed by that many bytes holding a numeric value */
-                                                        //                                                if (buf[0] + 1 != size) {
-                                                        //                                                        /* we got only a part of a message, we won't handle this in
-                                                        //                                                           this simple example */
-                                                        //                                                        printf("Message incomplete, something is still being transmitted\n");
-                                                        //                                                        return 0;
-                                                        //                                                } else {
-                                                        if (size == 1) {
+                                                        if (size == 65535) {
                                                                 //This message is used to measure ideal bandwidth
                                                                 //Return the timestamp of the recv
-//                                                                struct timeval recvtime;
-//                                                                gettimeofday(&recvtime, NULL);
-
-                                                                // char *sendbuffer;
-                                                                // sendbuffer = (char *) malloc(8);
-                                                                // if (!sendbuffer) {
-                                                                //         perror("failed to allocated sendbuffer");
-                                                                //         abort();
-                                                                // }
                                                                 // *(unsigned int *) sendbuffer = (unsigned int) htonl(recvtime.tv_sec);
                                                                 // *(unsigned int *) (sendbuffer + 4) = (unsigned int) htonl(recvtime.tv_usec);
-
+                                                                fprintf(stderr, "Test\n");
                                                                 server_recv_end.tv_sec = server_recv_end.tv_sec - server_recv_start.tv_sec;
                                                                 server_recv_end.tv_usec = server_recv_end.tv_usec - server_recv_start.tv_usec;
                                                                 server_recv_end.tv_sec = htonl(server_recv_end.tv_sec);
@@ -462,13 +406,12 @@ int main(int argc, char **argv)
                                                                 if (sendsize < 0) {
                                                                         printf("Send failed");
                                                                 }
-                                                                // free(sendbuffer);
-
+                                                        } else if (size < len){
+                                                                printf("Message incomplete, something is still being transmitted\n");
+                                                                return 0;
                                                         } else {
                                                                 fwrite(buf + 10, size - 10, 1, stdout);
                                                                 fprintf(stdout, "\n");
-
-                                                        unsigned short len = ntohs((unsigned short)*(unsigned short *)(buf));
                                                         // unsigned int sec = ntohl((unsigned int) *(unsigned int *) (buf + 2));
                                                         // unsigned int usec = ntohl((unsigned int) *(unsigned int *) (buf + 6));
                                                         /* a complete message is received, print it out */
@@ -476,7 +419,6 @@ int main(int argc, char **argv)
                                                         //        len, sec, usec, inet_ntoa(current->client_addr.sin_addr));
 
                                                         size = send(new_sock, buf, len, 0);
-                                                        // printf("send %d\n", size);
 
                                                         if (size <= 0)
                                                         {
@@ -501,7 +443,6 @@ int main(int argc, char **argv)
                                                                 // printf("Successfully sent back message\n");
                                                         }
                                                         }
-                                                        //                                                }
                                                 }
                                         }
                                 }
@@ -515,26 +456,19 @@ create_response(char *buf, char *result, FILE *fp, char *root_dir)
 {
 
         char method[MAXLINE], uri[MAXLINE], version[MAXLINE];
-        char *cursor;
 
         int bad = 0;
         int not_found = 0;
-        //     int ok = 0;
         char *res;
         char *bad_res = "400 Bad Request";
         char *not_res = "404 Not Found";
         char *ok_res = "200 OK";
         char file_name[1024];
 
-//        strcpy(buf, "GET /addr.c HTTP/1.1 \r\n\r\n");
-        fprintf(stderr, "buf: %s\n", buf);
-
         /* Split into method, uri, version */
         sscanf(buf, "%s %s %s", method, uri, version);
         strcpy(file_name, root_dir);
         strcat(file_name, uri);
-
-        fprintf(stderr, "hhhhh %s %s %s\n", method, uri, version);
 
         /* Split uri into hostname/path */
         if (strncmp(method, "GET", strlen("GET")) != 0)
@@ -555,7 +489,6 @@ create_response(char *buf, char *result, FILE *fp, char *root_dir)
 
         if (bad != 1)
         {
-                // strcpy(file_name, ".");
                 fprintf(stderr, "%s\n", file_name);
                 fp = fopen(file_name, "r+");
 
@@ -566,26 +499,14 @@ create_response(char *buf, char *result, FILE *fp, char *root_dir)
                 }
         }
         if (bad == 1)
-        {
                 res = bad_res;
-        }
         else if (not_found == 1)
-        {
                 res = not_res;
-        }
         else
-        {
                 res = ok_res;
-        }
         /* Fill into result array */
         sprintf(result, "%s", version);
-        // fprintf(stderr, "%s", cursor);
         sprintf(result, "%s %s\r\n", result, res);
-        // sprintf(result, "%s %s\r\n", result, version);
-        // *cursor = 0;
-        //         sprintf(result, "%sHost: %s\r\n", result, uri + strlen("http://"));
-        // sprintf(result, "%s%s", result, user_agent_hdr);
-        // sprintf(result, "%sConnection: close\r\n", result);
         sprintf(result, "%sContent-Type: text/html\r\n", result);
         fprintf(stdout, "create response: \n%s \n, size is \n\n\n", result);
         return fp;
