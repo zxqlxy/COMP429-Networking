@@ -180,7 +180,7 @@ int main(int argc, char **argv) {
                 // end_sec = ntohl((unsigned int) endtime);
                 // end_usec = ntohl((unsigned int) (endtime + 4));
                 independent_delay = ((endtime->tv_sec) * 1000000L + (endtime->tv_usec))*2 +
-                        ((starttime1.tv_sec - starttime1.tv_sec) * 1000000L + (starttime1.tv_usec - starttime1.tv_usec)) * 2;
+                        ((starttime1.tv_sec - starttime.tv_sec) * 1000000L + (starttime1.tv_usec - starttime.tv_usec)) * 2;
         }
         free(endtime);
 
