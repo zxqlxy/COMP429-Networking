@@ -392,7 +392,7 @@ int main(int argc, char **argv)
                                                         message has been received, you must wait and
                                                         receive the rest later when more data is available
                                                         to be read */
-                                                        if (size == 65535) {
+                                                        if (size == 1) {
                                                                 //This message is used to measure ideal bandwidth
                                                                 //Return the timestamp of the recv
                                                                 // *(unsigned int *) sendbuffer = (unsigned int) htonl(recvtime.tv_sec);

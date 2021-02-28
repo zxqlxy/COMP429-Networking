@@ -74,14 +74,14 @@ int main(int argc, char **argv) {
         struct timeval starttime1;
         struct timeval *endtime;
         endtime = (struct timeval *) malloc(sizeof(struct timeval));
-        char measurebyte[65535];
-        char *mb = measurebyte;
-        *(unsigned short *) (mb) = (unsigned short) htons(65535);
-        memset(mb+2, 65, sizeof(measurebyte) - 2);
+//        char measurebyte[65535];
+//        char *mb = measurebyte;
+//        *(unsigned short *) (mb) = (unsigned short) htons(65535);
+//        memset(mb+2, 65, sizeof(measurebyte) - 2);
         unsigned int long independent_delay;
-
+        char measureByte = 1;
         gettimeofday(&starttime, NULL);
-        send(sock, mb, sizeof(measurebyte), 0);
+        send(sock, &measureByte, 1, 0);
         gettimeofday(&starttime1, NULL);
         count = recv(sock, endtime, sizeof(struct timeval), 0);
         if (count < 0) {

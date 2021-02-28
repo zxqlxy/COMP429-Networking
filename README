@@ -2,11 +2,11 @@
 
 Zoey Ling   zl64
 Xinyun Liu  xl73
-Alex Guo
-Jiayi Li
+Alex Guo hg31
+Jiayi Li jl183
 
 
-1. 看看server 394， client 72行那个是否需要, 直接在part3.pdf里说明comment掉的code在哪吧
+1. 看看server 394 （改了，不用65535）， client 72行那个是否需要, 直接在part3.pdf里说明comment掉的code在哪吧
 2. measure the time it takes to send 65,535, not one byte。我们简单测了一下，发现跟老师的不对
-1.5ms 699mbps
+1.5ms 699mbps => 这肯定对不上，老师那个是随便给的例子
 
