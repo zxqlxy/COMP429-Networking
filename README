@@ -5,8 +5,16 @@ Xinyun Liu  xl73
 Alex Guo hg31
 Jiayi Li jl183
 
+How we tested our client and server:
+1. We tested the Ping-Pong mode of our client and server by starting the server and then invoke the client with various
+    message sizes and counts. We also tested edges cases such as sending only 1 message of size 10 and sending 10000 
+    messages of size 65535.
+2. We tested the Web server mode of our client by ... TODO FINISH THIS PART
+3. We tested the Measurement part of the server client by running several test cases on clear.
 
-1. 看看server 394 （改了，不用65535）， client 72行那个是否需要, 直接在part3.pdf里说明comment掉的code在哪吧
-2. measure the time it takes to send 65,535, not one byte。我们简单测了一下，发现跟老师的不对
-1.5ms 699mbps => 这肯定对不上，老师那个是随便给的例子
+Any known problem:
+There is no known problem.
+
+Anything the grader needs to know:
+Nothing.
 
