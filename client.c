@@ -74,10 +74,12 @@ int main(int argc, char **argv) {
         struct timeval starttime1;
         struct timeval *endtime;
         endtime = (struct timeval *) malloc(sizeof(struct timeval));
-        char measurebyte[65535];
-        char *mb = measurebyte;
-        *(unsigned short *) (mb) = (unsigned short) htons(65535);
-        memset(mb+2, 65, sizeof(measurebyte) - 2);
+        // char measurebyte[65535];
+        // char *mb = measurebyte;
+        // *(unsigned short *) (mb) = (unsigned short) htons(65535);
+        // memset(mb+2, 65, sizeof(measurebyte) - 2);
+        char measurebyte = 'a';
+        char *mb = &measurebyte;
         unsigned int long independent_delay;
 
         gettimeofday(&starttime, NULL);
@@ -101,7 +103,7 @@ int main(int argc, char **argv) {
         char d[size-10];
         char *dp = d;
 
-        memset(dp, 65 , sizeof(d) + 1);
+        memset(dp, 65 , sizeof(d));
 
         *(unsigned short *) (sendbuffer) = (unsigned short) htons(size);
         // *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
@@ -119,7 +121,6 @@ int main(int argc, char **argv) {
                         abort();
                 } else if (count < size) {
                         perror("not fully received");
-                        abort(); 
                 }
                 fwrite(sendbuffer+10, size-10, 1, stdout);
                 fprintf(stdout, "\n");
@@ -131,10 +132,10 @@ int main(int argc, char **argv) {
         //Calculate independent delay
         measured_delay = measured_delay / COUNT;
         // Assume c to s is the same as s to c
-        unsigned int long measured_bandwidth = (size * 2 * 8) / measured_delay;
+        unsigned int long measured_bandwidth = (size * 2 * 8) * 1000000L / measured_delay;
         printf("The independent delay is %ld microseconds.\n", independent_delay);
         printf("Measured delay is %ld microseconds.\n", measured_delay);
-        printf("The measured bandwidth is %ld Mbps. \n", measured_bandwidth * 1000000L);
+        printf("The measured bandwidth is %ld Mbps. \n", measured_bandwidth );
 
         return 0;
 }

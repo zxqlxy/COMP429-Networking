@@ -392,7 +392,7 @@ int main(int argc, char **argv)
                                                         message has been received, you must wait and
                                                         receive the rest later when more data is available
                                                         to be read */
-                                                        if (size == 65535) {
+                                                        if (size == 1) {
                                                                 //This message is used to measure ideal bandwidth
                                                                 //Return the timestamp of the recv
                                                                 // *(unsigned int *) sendbuffer = (unsigned int) htonl(recvtime.tv_sec);
@@ -408,7 +408,7 @@ int main(int argc, char **argv)
                                                                 }
                                                         } else if (size < len){
                                                                 printf("Message incomplete, something is still being transmitted\n");
-                                                                return 0;
+                                                                // return 0;
                                                         } else {
                                                                 fwrite(buf + 10, size - 10, 1, stdout);
                                                                 fprintf(stdout, "\n");
