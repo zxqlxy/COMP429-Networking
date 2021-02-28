@@ -131,10 +131,10 @@ int main(int argc, char **argv) {
         //Calculate independent delay
         measured_delay = measured_delay / COUNT;
         // Assume c to s is the same as s to c
-        unsigned int long measured_bandwidth = (size * 2 * 8) / measured_delay;
+        unsigned int long measured_bandwidth = (size * 2 * 8) * 1000000L / measured_delay;
         printf("The independent delay is %ld microseconds.\n", independent_delay);
         printf("Measured delay is %ld microseconds.\n", measured_delay);
-        printf("The measured bandwidth is %ld Mbps. \n", measured_bandwidth * 1000000L);
+        printf("The measured bandwidth is %ld Mbps. \n", measured_bandwidth);
 
         return 0;
 }
