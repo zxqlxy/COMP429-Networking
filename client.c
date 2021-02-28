@@ -74,16 +74,23 @@ int main(int argc, char **argv) {
         struct timeval starttime1;
         struct timeval *endtime;
         endtime = (struct timeval *) malloc(sizeof(struct timeval));
+<<<<<<< HEAD
         // char measurebyte[65535];
         // char *mb = measurebyte;
         // *(unsigned short *) (mb) = (unsigned short) htons(65535);
         // memset(mb+2, 65, sizeof(measurebyte) - 2);
         char measurebyte = 'a';
         char *mb = &measurebyte;
+=======
+//        char measurebyte[65535];
+//        char *mb = measurebyte;
+//        *(unsigned short *) (mb) = (unsigned short) htons(65535);
+//        memset(mb+2, 65, sizeof(measurebyte) - 2);
+>>>>>>> 3dae9b8517223c9e9d0854bbd18a5cf8ce84e46e
         unsigned int long independent_delay;
-
+        char measureByte = 1;
         gettimeofday(&starttime, NULL);
-        send(sock, mb, sizeof(measurebyte), 0);
+        send(sock, &measureByte, 1, 0);
         gettimeofday(&starttime1, NULL);
         count = recv(sock, endtime, sizeof(struct timeval), 0);
         if (count < 0) {
@@ -135,7 +142,7 @@ int main(int argc, char **argv) {
         unsigned int long measured_bandwidth = (size * 2 * 8) * 1000000L / measured_delay;
         printf("The independent delay is %ld microseconds.\n", independent_delay);
         printf("Measured delay is %ld microseconds.\n", measured_delay);
-        printf("The measured bandwidth is %ld Mbps. \n", measured_bandwidth );
+        printf("The measured bandwidth is %ld Mbps. \n", measured_bandwidth);
 
         return 0;
 }
