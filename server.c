@@ -325,7 +325,7 @@ int main(int argc, char **argv)
                         // printf("Received the number \"%d\", \"%d\", \"%d\". Client IP address is: %s\n",
                         //        len, sec, usec, inet_ntoa(current->client_addr.sin_addr));
 
-                        printf("write set prior to send, current buflen: %d, idx: %d, size: %d\n", current->buf_len, current->idx, size);
+//                        printf("write set prior to send, current buflen: %d, idx: %d, size: %d\n", current->buf_len, current->idx, size);
                         size = send(current->socket, current->buf + current->idx, current->buf_len-current->idx, MSG_DONTWAIT);
 
                         if (size <= 0)
@@ -356,7 +356,7 @@ int main(int argc, char **argv)
                             }
                             // printf("Successfully sent back message\n");
                         }
-                        printf("write set current buflen: %d, idx: %d, size: %d\n", current->buf_len, current->idx, size);
+//                        printf("write set current buflen: %d, idx: %d, size: %d\n", current->buf_len, current->idx, size);
                     }
                 }
 
@@ -428,11 +428,11 @@ int main(int argc, char **argv)
                     }
                     else
                     {
-                        printf("enter read set\n");
+//                        printf("enter read set\n");
                         gettimeofday(&server_recv_start, NULL);
 //                                                size = recv(current->socket, buf, BUF_LEN, MSG_DONTWAIT);
                         size = recv(current->socket, current->buf + current->idx, BUF_LEN-current->idx, MSG_DONTWAIT);
-                        printf("size: %d\n", size);
+//                        printf("size: %d\n", size);
                         if (size == 1) {
                             current->testByte = 1;
                             current->pending_data = 1;
@@ -442,7 +442,7 @@ int main(int argc, char **argv)
                                 current->buf_len = ntohs(*(unsigned short *)(current->buf));
                             }
                             current->idx += size;
-                            printf("read set current buf_len: %d, idx: %d, size: %d\n", current->buf_len, current->idx, size);
+//                            printf("read set current buf_len: %d, idx: %d, size: %d\n", current->buf_len, current->idx, size);
                             if (current->idx == current->buf_len) {
                                 current->idx = 0;
                                 current->pending_data = 1;
@@ -455,7 +455,7 @@ int main(int argc, char **argv)
                                    will have to go back to select and wait til select
                                    tells us the socket is ready for writing
                                 */
-                                printf("EAGAIN\n");
+                                printf("EAGAIN error\n");
                             }
                                 /* something is wrong */
                             else if (size == 0)

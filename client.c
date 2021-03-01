@@ -9,11 +9,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-/* simple client, takes two parameters, the server domain name,
-   and the server port number */
-int send_all(int socket, char *buffer, int length);
-int recv_all(int socket, char *buffer, int length);
-
 int main(int argc, char **argv) {
 
         /* our client socket */
@@ -123,33 +118,22 @@ int main(int argc, char **argv) {
                 gettimeofday(&time, NULL);
                 *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
                 *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
-//                send(sock, sendbuffer, size, 0);
-                // send_all(sock, sendbuffer, size);
-//                count = recv(sock, sendbuffer, size, 0);
-//                if (count < 0) {
-//                        perror("receive failure");
-//                        abort();
-//                } else if (count < size) {
-//                        perror("not fully received");
-//                }
-                // count = recv_all(sock, sendbuffer, size);
 //                fwrite(sendbuffer+10, size-10, 1, stdout);
 //                fprintf(stdout, "\n");
 
                 int recvcount = 0;
                 int sendcount = 0;
-                printf("sendcount before %d\n", sendcount);
+//                printf("sendcount before %d\n", sendcount);
                 while (sendcount < size) {
                         sendcount += send(sock, sendbuffer + sendcount, size - sendcount, 0);
                 }
-                printf("sendcount after %d\n", sendcount);
+//                printf("sendcount after %d\n", sendcount);
 
-                printf("recvcount before %d\n", recvcount);
+//                printf("recvcount before %d\n", recvcount);
                 while (recvcount < size) {
                         recvcount += recv(sock, receivebuffer + recvcount, size - recvcount, 0);
                 }
-                printf("recvcount after %d\n", recvcount);
-
+//                printf("recvcount after %d\n", recvcount);
 
                 gettimeofday(&recvtime, NULL);
                 measured_delay += ((recvtime.tv_sec - time.tv_sec) * 1000000L) + recvtime.tv_usec - time.tv_usec;
@@ -157,51 +141,14 @@ int main(int argc, char **argv) {
         close(sock);
         free(sendbuffer);
         free(receivebuffer);
-        //Calculate independent delay
+        //Calculate average latency
         measured_delay = measured_delay / COUNT;
+        double average_latency = (double)measured_delay / 1000;
         // Assume c to s is the same as s to c
-        unsigned int long measured_bandwidth = (size * 2 * 8) * 1000000L / measured_delay;
-        printf("The independent delay is %ld microseconds.\n", independent_delay);
-        printf("Measured delay is %ld microseconds.\n", measured_delay);
+        unsigned int long measured_bandwidth = ((size * 2 * 8) * 1000000L / measured_delay) / 1000000L;
+        printf("The independent delay is %0.3f milliseconds.\n", (double)independent_delay/1000);
+        printf("The average latency of the exchanges is %0.3f milliseconds.\n", average_latency);
         printf("The measured bandwidth is %ld Mbps. \n", measured_bandwidth);
 
         return 0;
-}
-
-int
-send_all(int socket, char *buffer, int length)
-{
-    ssize_t n;
-    char *p = buffer;
-    while (length > 0)
-    {
-        n = send(socket, p, length, 0);
-        if (n < 0) {
-            perror("error sending data to server");
-            abort();
-        }
-        p += n;
-        length -= n;
-    }
-    printf("return in send_all, n: %d\n", n);
-    return 0;
-}
-
-int
-recv_all(int socket, char *buffer, int length)
-{
-    ssize_t n;
-    char *p = buffer;
-    while (length > 0)
-    {
-        n = recv(socket, p, length, 0);
-        if (n < 0) {
-            perror("error receiving data from server");
-            abort();
-        }
-        p += n;
-        length -= n;
-    }
-    printf("return in recv_all, n: %d\n", n);
-    return 0;
 }
