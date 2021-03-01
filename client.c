@@ -79,6 +79,7 @@ int main(int argc, char **argv) {
         // char *mb = measurebyte;
         // *(unsigned short *) (mb) = (unsigned short) htons(65535);
         // memset(mb+2, 65, sizeof(measurebyte) - 2);
+
         char measurebyte = 'a';
         char *mb = &measurebyte;
         unsigned int long independent_delay;
@@ -125,9 +126,8 @@ int main(int argc, char **argv) {
 //                        perror("not fully received");
 //                }
                 count = recv_all(sock, sendbuffer, size);
-                printf("count: %d\n", count);
-                fwrite(sendbuffer+10, size-10, 1, stdout);
-                fprintf(stdout, "\n");
+//                fwrite(sendbuffer+10, size-10, 1, stdout);
+//                fprintf(stdout, "\n");
                 gettimeofday(&recvtime, NULL);
                 measured_delay += ((recvtime.tv_sec - time.tv_sec) * 1000000L) + recvtime.tv_usec - time.tv_usec;
         }
@@ -159,7 +159,7 @@ send_all(int socket, char *buffer, int length)
         p += n;
         length -= n;
     }
-//    printf("return in send_all\n");
+    printf("return in send_all, n: %d\n", n);
     return 0;
 }
 
@@ -178,5 +178,6 @@ recv_all(int socket, char *buffer, int length)
         p += n;
         length -= n;
     }
+    printf("return in recv_all, n: %d\n", n);
     return 0;
 }
