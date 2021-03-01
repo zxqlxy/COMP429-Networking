@@ -39,6 +39,7 @@ int main(int argc, char **argv) {
         unsigned int COUNT = atoi(argv[4]);
 
         char *sendbuffer;
+        char *receivebuffer;
         int count;
 
         /* allocate a memory buffer in the heap */
@@ -49,6 +50,12 @@ int main(int argc, char **argv) {
         sendbuffer = (char *) malloc(size);
         if (!sendbuffer) {
                 perror("failed to allocated sendbuffer");
+                abort();
+        }
+
+        receivebuffer = (char *) malloc(size);
+        if (!receivebuffer) {
+                perror("failed to allocated receivebuffer");
                 abort();
         }
 
@@ -117,7 +124,7 @@ int main(int argc, char **argv) {
                 *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
                 *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
 //                send(sock, sendbuffer, size, 0);
-                send_all(sock, sendbuffer, size);
+                // send_all(sock, sendbuffer, size);
 //                count = recv(sock, sendbuffer, size, 0);
 //                if (count < 0) {
 //                        perror("receive failure");
@@ -125,14 +132,31 @@ int main(int argc, char **argv) {
 //                } else if (count < size) {
 //                        perror("not fully received");
 //                }
-                count = recv_all(sock, sendbuffer, size);
+                // count = recv_all(sock, sendbuffer, size);
 //                fwrite(sendbuffer+10, size-10, 1, stdout);
 //                fprintf(stdout, "\n");
+
+                int recvcount = 0;
+                int sendcount = 0;
+                printf("sendcount before %d\n", sendcount);
+                while (sendcount < size) {
+                        sendcount += send(sock, sendbuffer + sendcount, size - sendcount, 0);
+                }
+                printf("sendcount after %d\n", sendcount);
+
+                printf("recvcount before %d\n", recvcount);
+                while (recvcount < size) {
+                        recvcount += recv(sock, receivebuffer + recvcount, size - recvcount, 0);
+                }
+                printf("recvcount after %d\n", recvcount);
+
+
                 gettimeofday(&recvtime, NULL);
                 measured_delay += ((recvtime.tv_sec - time.tv_sec) * 1000000L) + recvtime.tv_usec - time.tv_usec;
         }
         close(sock);
         free(sendbuffer);
+        free(receivebuffer);
         //Calculate independent delay
         measured_delay = measured_delay / COUNT;
         // Assume c to s is the same as s to c
