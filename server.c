@@ -306,11 +306,12 @@ int main(int argc, char **argv)
                         // This message is used to measure ideal bandwidth
                         // Return the timestamp of the recv
                         fprintf(stderr, "Test\n");
-                        server_recv_end.tv_sec = server_recv_end.tv_sec - server_recv_start.tv_sec;
-                        server_recv_end.tv_usec = server_recv_end.tv_usec - server_recv_start.tv_usec;
-                        server_recv_end.tv_sec = htonl(server_recv_end.tv_sec);
-                        server_recv_end.tv_usec = htonl(server_recv_end.tv_usec);
-                        int sendsize = send(current->socket, &server_recv_end, sizeof(struct timeval), MSG_DONTWAIT);
+//                        server_recv_end.tv_sec = server_recv_end.tv_sec - server_recv_start.tv_sec;
+//                        server_recv_end.tv_usec = server_recv_end.tv_usec - server_recv_start.tv_usec;
+//                        server_recv_end.tv_sec = htonl(server_recv_end.tv_sec);
+//                        server_recv_end.tv_usec = htonl(server_recv_end.tv_usec);
+//                        int sendsize = send(current->socket, &server_recv_end, sizeof(struct timeval), MSG_DONTWAIT);
+                        int sendsize = send(current->socket, current->buf, 1, MSG_DONTWAIT);
                         if (sendsize < 0) {
                             printf("Send failed");
                         }
@@ -429,7 +430,7 @@ int main(int argc, char **argv)
                     else
                     {
 //                        printf("enter read set\n");
-                        gettimeofday(&server_recv_start, NULL);
+//                        gettimeofday(&server_recv_start, NULL);
 //                                                size = recv(current->socket, buf, BUF_LEN, MSG_DONTWAIT);
                         size = recv(current->socket, current->buf + current->idx, BUF_LEN-current->idx, MSG_DONTWAIT);
 //                        printf("size: %d\n", size);
@@ -472,7 +473,7 @@ int main(int argc, char **argv)
                             close(current->socket);
                             dump(&head, current->socket);
                         }
-                        gettimeofday(&server_recv_end, NULL);
+//                        gettimeofday(&server_recv_end, NULL);
                     }
                 }
             }
@@ -537,6 +538,6 @@ create_response(char *buf, char *result, FILE *fp, char *root_dir)
     sprintf(result, "%s", version);
     sprintf(result, "%s %s\r\n", result, res);
     sprintf(result, "%sContent-Type: text/html\r\n", result);
-    fprintf(stdout, "create response: \n%s \n, size is \n\n\n", result);
+    fprintf(stdout, "create response: \n%s \n", result);
     return fp;
 }
