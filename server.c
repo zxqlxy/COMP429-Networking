@@ -361,7 +361,7 @@ int main(int argc, char **argv)
                                                 struct timeval server_recv_start;
                                                 struct timeval server_recv_end;
                                                 gettimeofday(&server_recv_start, NULL);
-                                                size = recv(current->socket, buf, BUF_LEN, 0);
+                                                size = recv(current->socket, buf, BUF_LEN, MSG_DONTWAIT);
                                                 gettimeofday(&server_recv_end, NULL);
                                                 unsigned short len = ntohs((unsigned short)*(unsigned short *)(buf));
                                                 if (size <= 0)
@@ -402,11 +402,12 @@ int main(int argc, char **argv)
                                                                 server_recv_end.tv_usec = server_recv_end.tv_usec - server_recv_start.tv_usec;
                                                                 server_recv_end.tv_sec = htonl(server_recv_end.tv_sec);
                                                                 server_recv_end.tv_usec = htonl(server_recv_end.tv_usec);
-                                                                int sendsize = send(new_sock, &server_recv_end, sizeof(struct timeval), 0);
+                                                                int sendsize = send(new_sock, &server_recv_end, sizeof(struct timeval), MSG_DONTWAIT);
                                                                 if (sendsize < 0) {
                                                                         printf("Send failed");
                                                                 }
                                                         } else if (size < len){
+                                                                printf("size: %d, len: %d\n", size, len);
                                                                 printf("Message incomplete, something is still being transmitted\n");
                                                                 // return 0;
                                                         } else {
@@ -418,7 +419,7 @@ int main(int argc, char **argv)
                                                         // printf("Received the number \"%d\", \"%d\", \"%d\". Client IP address is: %s\n",
                                                         //        len, sec, usec, inet_ntoa(current->client_addr.sin_addr));
 
-                                                        size = send(new_sock, buf, len, 0);
+                                                        size = send(new_sock, buf, len, MSG_DONTWAIT);
 
                                                         if (size <= 0)
                                                         {

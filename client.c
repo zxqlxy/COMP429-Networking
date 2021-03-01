@@ -11,6 +11,8 @@
 
 /* simple client, takes two parameters, the server domain name,
    and the server port number */
+int send_all(int socket, char *buffer, int length);
+int recv_all(int socket, char *buffer, int length);
 
 int main(int argc, char **argv) {
 
@@ -68,25 +70,17 @@ int main(int argc, char **argv) {
                 abort();
         }
 
-
         // Measure the network link bandwidth
         struct timeval starttime;
         struct timeval starttime1;
         struct timeval *endtime;
         endtime = (struct timeval *) malloc(sizeof(struct timeval));
-<<<<<<< HEAD
         // char measurebyte[65535];
         // char *mb = measurebyte;
         // *(unsigned short *) (mb) = (unsigned short) htons(65535);
         // memset(mb+2, 65, sizeof(measurebyte) - 2);
         char measurebyte = 'a';
         char *mb = &measurebyte;
-=======
-//        char measurebyte[65535];
-//        char *mb = measurebyte;
-//        *(unsigned short *) (mb) = (unsigned short) htons(65535);
-//        memset(mb+2, 65, sizeof(measurebyte) - 2);
->>>>>>> 3dae9b8517223c9e9d0854bbd18a5cf8ce84e46e
         unsigned int long independent_delay;
         char measureByte = 1;
         gettimeofday(&starttime, NULL);
@@ -121,14 +115,17 @@ int main(int argc, char **argv) {
                 gettimeofday(&time, NULL);
                 *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
                 *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
-                send(sock, sendbuffer, size, 0);
-                count = recv(sock, sendbuffer, size, 0);
-                if (count < 0) {
-                        perror("receive failure");
-                        abort();
-                } else if (count < size) {
-                        perror("not fully received");
-                }
+//                send(sock, sendbuffer, size, 0);
+                send_all(sock, sendbuffer, size);
+//                count = recv(sock, sendbuffer, size, 0);
+//                if (count < 0) {
+//                        perror("receive failure");
+//                        abort();
+//                } else if (count < size) {
+//                        perror("not fully received");
+//                }
+                count = recv_all(sock, sendbuffer, size);
+                printf("count: %d\n", count);
                 fwrite(sendbuffer+10, size-10, 1, stdout);
                 fprintf(stdout, "\n");
                 gettimeofday(&recvtime, NULL);
@@ -145,4 +142,41 @@ int main(int argc, char **argv) {
         printf("The measured bandwidth is %ld Mbps. \n", measured_bandwidth);
 
         return 0;
+}
+
+int
+send_all(int socket, char *buffer, int length)
+{
+    ssize_t n;
+    char *p = buffer;
+    while (length > 0)
+    {
+        n = send(socket, p, length, 0);
+        if (n < 0) {
+            perror("error sending data to server");
+            abort();
+        }
+        p += n;
+        length -= n;
+    }
+//    printf("return in send_all\n");
+    return 0;
+}
+
+int
+recv_all(int socket, char *buffer, int length)
+{
+    ssize_t n;
+    char *p = buffer;
+    while (length > 0)
+    {
+        n = recv(socket, p, length, 0);
+        if (n < 0) {
+            perror("error receiving data from server");
+            abort();
+        }
+        p += n;
+        length -= n;
+    }
+    return 0;
 }
