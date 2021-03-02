@@ -72,12 +72,34 @@ int main(int argc, char **argv) {
         abort();
     }
 
+    // Pre-test making speed approach bandwidth's upper limit
+    char test[65535-10];
+    char *testp = test;
+    int i;
+
+    memset(testp, 65 , sizeof(test));
+
+    *(unsigned short *) (sendbuffer) = (unsigned short) htons(65535);
+    memcpy(sendbuffer+10, &test, sizeof(test));
+    for (i = 0; i < 10000; i++) {
+
+        int recvcount = 0;
+        int sendcount = 0;
+
+        while (sendcount < size) {
+            sendcount += send(sock, sendbuffer + sendcount, size - sendcount, 0);
+        }
+
+        while (recvcount < size) {
+            recvcount += recv(sock, receivebuffer + recvcount, size - recvcount, 0);
+        }
+    }
+
     // Send message
     struct timeval time, recvtime;
     double measured_delay = 0.0;
     char d[size-10];
     char *dp = d;
-    int i;
 
     memset(dp, 65 , sizeof(d));
 

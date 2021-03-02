@@ -413,9 +413,6 @@ int main(int argc, char **argv)
                     }
                     else
                     {
-//                        printf("enter read set\n");
-//                        gettimeofday(&server_recv_start, NULL);
-//                                                size = recv(current->socket, buf, BUF_LEN, MSG_DONTWAIT);
                         size = recv(current->socket, current->buf + current->idx, BUF_LEN-current->idx, MSG_DONTWAIT);
                         if (size == 1) {
                             current->testByte = 1;
@@ -426,7 +423,6 @@ int main(int argc, char **argv)
                                 current->buf_len = ntohs(*(unsigned short *)(current->buf));
                             }
                             current->idx += size;
-//                            printf("read set current buf_len: %d, idx: %d, size: %d\n", current->buf_len, current->idx, size);
                             if (current->idx == current->buf_len) {
                                 current->idx = 0;
                                 current->pending_data = 1;
@@ -456,7 +452,6 @@ int main(int argc, char **argv)
                             close(current->socket);
                             dump(&head, current->socket);
                         }
-//                        gettimeofday(&server_recv_end, NULL);
                     }
                 }
             }
