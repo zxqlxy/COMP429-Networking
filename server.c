@@ -394,7 +394,7 @@ int main(int argc, char **argv)
                                 fclose(fp);
                             }
 
-                            size = send(new_sock, result, newLen+1, 0);
+                            size = send(current->socket, result, newLen+1, 0);
                             if (size <= 0) {
                                 /* something is wrong */
                                 if (size == 0) {
