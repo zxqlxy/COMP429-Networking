@@ -36,19 +36,20 @@ int main(int argc, char **argv) {
     char *sendbuffer;
     char *receivebuffer;
     int count;
+    int i;
 
     /* allocate a memory buffer in the heap */
     /* putting a buffer on the stack like:
        leaves the potential for
        buffer overflow vulnerability */
 
-    sendbuffer = (char *) malloc(size);
+    sendbuffer = (char *) malloc(65535);
     if (!sendbuffer) {
         perror("failed to allocated sendbuffer");
         abort();
     }
 
-    receivebuffer = (char *) malloc(size);
+    receivebuffer = (char *) malloc(65535);
     if (!receivebuffer) {
         perror("failed to allocated receivebuffer");
         abort();
@@ -70,29 +71,6 @@ int main(int argc, char **argv) {
     if (connect(sock, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
         perror("connect to server failed");
         abort();
-    }
-
-    // Pre-test making speed approach bandwidth's upper limit
-    char test[65535-10];
-    char *testp = test;
-    int i;
-
-    memset(testp, 65 , sizeof(test));
-
-    *(unsigned short *) (sendbuffer) = (unsigned short) htons(65535);
-    memcpy(sendbuffer+10, &test, sizeof(test));
-    for (i = 0; i < 10000; i++) {
-
-        int recvcount = 0;
-        int sendcount = 0;
-
-        while (sendcount < size) {
-            sendcount += send(sock, sendbuffer + sendcount, size - sendcount, 0);
-        }
-
-        while (recvcount < size) {
-            recvcount += recv(sock, receivebuffer + recvcount, size - recvcount, 0);
-        }
     }
 
     // Send message
@@ -129,16 +107,18 @@ int main(int argc, char **argv) {
     free(receivebuffer);
 
 
-    // Measurement
+    // Part 3 Measurement
     struct timeval starttime;
     struct timeval starttime1;
     char *mb = malloc(sizeof(char));
-    double independent_delay;
+    // double independent_delay;
     double y1 = 0.0;
-    double k;
+    // double k;
     memset(mb, 65, 1);
     measured_delay = measured_delay / COUNT;
     double average_latency = measured_delay / 1000;
+
+    *(unsigned short *) (mb) = (unsigned short) htons(10000);
 
     for (i = 0; i < COUNT; i++) {
         gettimeofday(&starttime, NULL);
@@ -155,17 +135,14 @@ int main(int argc, char **argv) {
     y1 /= COUNT;
     free(mb);
 
-    k = (measured_delay-y1) / (size-1);
-    fprintf(stdout, "size: %d\n", size);
-    fprintf(stdout, "y1: %f\n", y1);
-    fprintf(stdout, "measured_delay: %f\n", measured_delay);
-    fprintf(stdout, "k: %f\n", k);
-    independent_delay = y1;
-    double measured_bandwidth = (1.0/k) * 2 * 8;
-//        unsigned int long measured_bandwidth = ((size * 2 * 8) * 1000000L / measured_delay) / 1000000L;
-    printf("The independent delay is %f milliseconds.\n", independent_delay/1000);
     printf("The average latency of the exchanges is %0.3f milliseconds.\n", average_latency);
-    printf("The measured bandwidth is %f Mbps. \n", measured_bandwidth);
+    
+    // Part 3
+    // independent_delay = y1;
+    // k = (measured_delay-y1)/(size-1);
+    // double measured_bandwidth = (1.0/k) * 2 * 8;
+    // printf("The independent delay is %f milliseconds.\n", independent_delay/1000);
+    // printf("The measured bandwidth is %f Mbps. \n", measured_bandwidth);
 
     close(sock);
 

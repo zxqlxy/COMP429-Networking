@@ -135,10 +135,9 @@ int main(int argc, char **argv)
     struct node *current, *next;
 
     /* a buffer to read data */
-    char *buf, *result;
+    char *result;
     int BUF_LEN = 65535;
 
-    buf = (char *)malloc(BUF_LEN);
     result = (char *)malloc(BUF_LEN);
 
     /* initialize dummy head node of linked list */
@@ -269,38 +268,9 @@ int main(int argc, char **argv)
             for (current = head.next; current; current = next)
             {
                 next = current->next;
-                struct timeval server_recv_end = *(current->server_recv_end);
-                struct timeval server_recv_start = *(current->server_recv_start);
                 /* see if we can now do some previously unsuccessful writes */
                 if (FD_ISSET(current->socket, &write_set))
                 {
-//                    /* the socket is now ready to take more data */
-//                    /* the socket data structure should have information
-//                           describing what data is supposed to be sent next.
-//                       but here for simplicity, let's say we are just
-//                           sending whatever is in the buffer buf
-//                         */
-//                    size = send(current->socket, buf, BUF_LEN, MSG_DONTWAIT);
-//                    if (size < 0)
-//                    {
-//                        if (errno == EAGAIN)
-//                        {
-//                            /* we are trying to dump too much data down the socket,
-//                               it cannot take more for the time being
-//                               will have to go back to select and wait til select
-//                               tells us the socket is ready for writing
-//                            */
-//                        }
-//                        else
-//                        {
-//                            /* something else is wrong */
-//                        }
-//                    }
-//                    /* note that it is important to check size for exactly
-//                           how many bytes were actually sent even when there are
-//                           no error. send() may send only a portion of the buffer
-//                           to be sent.
-//                    */
                     if (current->testByte == 1) {
 
                         // This message is used to measure ideal bandwidth
@@ -317,15 +287,11 @@ int main(int argc, char **argv)
                         {
                             /* something is wrong */
                             if (size == 0)
-                            {
                                 printf("Client closed connection. Client IP address is: %s\n",
                                        inet_ntoa(
                                                current->client_addr.sin_addr));
-                            }
                             else
-                            {
                                 perror("error receiving from a client");
-                            }
 
                             /* connection is closed, clean up */
                             close(current->socket);
@@ -341,34 +307,26 @@ int main(int argc, char **argv)
                             }
                             // printf("Successfully sent back message\n");
                         }
-//                        printf("write set current buflen: %d, idx: %d, size: %d\n", current->buf_len, current->idx, size);
                     }
                 }
 
                 if (FD_ISSET(current->socket, &read_set))
                 {
                     /* we have data from a client */
-
                     if (flag == 1)
                     {
-
                         FILE *fp = NULL;
                         size_t newLen = 0;
 
                         size = recv(current->socket, current->buf, BUF_LEN, 0);
                         if (size <= 0)
                         {
-
                             /* something is wrong */
                             if (size == 0)
-                            {
                                 printf("Client closed connection. Client IP address is: %s\n",
                                        inet_ntoa(current->client_addr.sin_addr));
-                            }
                             else
-                            {
                                 perror("error receiving from a client");
-                            }
 
                             /* connection is closed, clean up */
                             close(current->socket);
@@ -407,7 +365,7 @@ int main(int argc, char **argv)
                                 close(current->socket);
                                 dump(&head, current->socket);
                             } else {
-                                printf("Successfully sent the file\n");
+                                // printf("Successfully sent the file\n");
                             }
                         }
                     }
