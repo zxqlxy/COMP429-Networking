@@ -304,13 +304,6 @@ int main(int argc, char **argv)
                     if (current->testByte == 1) {
 
                         // This message is used to measure ideal bandwidth
-                        // Return the timestamp of the recv
-                        fprintf(stderr, "Test\n");
-//                        server_recv_end.tv_sec = server_recv_end.tv_sec - server_recv_start.tv_sec;
-//                        server_recv_end.tv_usec = server_recv_end.tv_usec - server_recv_start.tv_usec;
-//                        server_recv_end.tv_sec = htonl(server_recv_end.tv_sec);
-//                        server_recv_end.tv_usec = htonl(server_recv_end.tv_usec);
-//                        int sendsize = send(current->socket, &server_recv_end, sizeof(struct timeval), MSG_DONTWAIT);
                         int sendsize = send(current->socket, current->buf, 1, MSG_DONTWAIT);
                         if (sendsize < 0) {
                             printf("Send failed");
@@ -320,11 +313,6 @@ int main(int argc, char **argv)
                     } else {
 //                                                                fwrite(buf + 10, size - 10, 1, stdout);
 //                                                                fprintf(stdout, "\n");
-                        // unsigned int sec = ntohl((unsigned int) *(unsigned int *) (buf + 2));
-                        // unsigned int usec = ntohl((unsigned int) *(unsigned int *) (buf + 6));
-                        /* a complete message is received, print it out */
-                        // printf("Received the number \"%d\", \"%d\", \"%d\". Client IP address is: %s\n",
-                        //        len, sec, usec, inet_ntoa(current->client_addr.sin_addr));
 
 //                        printf("write set prior to send, current buflen: %d, idx: %d, size: %d\n", current->buf_len, current->idx, size);
                         size = send(current->socket, current->buf + current->idx, current->buf_len-current->idx, MSG_DONTWAIT);
@@ -371,7 +359,7 @@ int main(int argc, char **argv)
                         FILE *fp = NULL;
                         size_t newLen = 0;
 
-                        size = recv(current->socket, buf, BUF_LEN, 0);
+                        size = recv(current->socket, current->buf, BUF_LEN, 0);
                         if (size <= 0)
                         {
 
@@ -391,7 +379,7 @@ int main(int argc, char **argv)
                             dump(&head, current->socket);
                         } else {
 
-                            fp = create_response(buf, result, fp, root_dir);
+                            fp = create_response(current->buf, result, fp, root_dir);
                             if (fp == NULL) {
                                 newLen = strlen(result);
                                 fprintf(stdout, "FP is NULL\n");
