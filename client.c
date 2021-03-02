@@ -72,57 +72,33 @@ int main(int argc, char **argv) {
         abort();
     }
 
-    // Measure the network link bandwidth
-    struct timeval starttime;
-    struct timeval starttime1;
-    char *mb = malloc(sizeof(char));
-    int i;
-    // endtime = (struct timeval *) malloc(sizeof(struct timeval));
-    // char measurebyte[65535];
-    // char *mb = measurebyte;
-    // *(unsigned short *) (mb) = (unsigned short) htons(65535);
-    // memset(mb+2, 65, sizeof(measurebyte) - 2);
-
-    // char measurebyte = 'a';
-    // char *mb = &measurebyte;
-    double independent_delay;
-    // char measureByte = 1;
-    double y1 = 0.0;
-    double k;
-    memset(mb, 65, 1);
-
+    // Send message
     struct timeval time, recvtime;
     double measured_delay = 0.0;
-    // gettimeofday(&time, NULL);
     char d[size-10];
     char *dp = d;
+    int i;
 
     memset(dp, 65 , sizeof(d));
 
     *(unsigned short *) (sendbuffer) = (unsigned short) htons(size);
-    // *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
-    // *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
     memcpy(sendbuffer+10, &d, sizeof(d));
     for (i = 0; i < COUNT; i++) {
         gettimeofday(&time, NULL);
         *(unsigned int *) (sendbuffer + 2) = (unsigned int) htonl(time.tv_sec);
         *(unsigned int *) (sendbuffer + 6) = (unsigned int) htonl(time.tv_usec);
-//                fwrite(sendbuffer+10, size-10, 1, stdout);
-//                fprintf(stdout, "\n");
+        // Not necessary to print message
 
         int recvcount = 0;
         int sendcount = 0;
-//                printf("sendcount before %d\n", sendcount);
+
         while (sendcount < size) {
             sendcount += send(sock, sendbuffer + sendcount, size - sendcount, 0);
         }
-//                printf("sendcount after %d\n", sendcount);
 
-//                printf("recvcount before %d\n", recvcount);
         while (recvcount < size) {
             recvcount += recv(sock, receivebuffer + recvcount, size - recvcount, 0);
         }
-//                printf("recvcount after %d\n", recvcount);
 
         gettimeofday(&recvtime, NULL);
         measured_delay += ((recvtime.tv_sec - time.tv_sec) * 1000000L) + recvtime.tv_usec - time.tv_usec;
@@ -130,12 +106,20 @@ int main(int argc, char **argv) {
     close(sock);
     free(sendbuffer);
     free(receivebuffer);
-    //Calculate average latency
+
+
+    // Measurement
+    struct timeval starttime;
+    struct timeval starttime1;
+    char *mb = malloc(sizeof(char));
+    int i;
+    double independent_delay;
+    double y1 = 0.0;
+    double k;
+    memset(mb, 65, 1);
     measured_delay = measured_delay / COUNT;
     double average_latency = measured_delay / 1000;
-    //        measured_delay = 50;
-    //        y1 = 60;
-    //        size = 65535;
+
     for (i = 0; i < COUNT; i++) {
         gettimeofday(&starttime, NULL);
         send(sock, mb, 1, 0);
@@ -145,8 +129,6 @@ int main(int argc, char **argv) {
             perror("receive failure");
             abort();
         } else {
-            //                endtime->tv_sec = ntohl(endtime->tv_sec);
-            //                endtime->tv_usec = ntohl(endtime->tv_usec);
             y1 += ((starttime1.tv_sec - starttime.tv_sec) * 1000000L + (starttime1.tv_usec - starttime.tv_usec));
         }
     }
@@ -160,7 +142,6 @@ int main(int argc, char **argv) {
     fprintf(stdout, "k: %f\n", k);
     independent_delay = y1;
     double measured_bandwidth = (1.0/k) * 2 * 8;
-    // Assume c to s is the same as s to c
 //        unsigned int long measured_bandwidth = ((size * 2 * 8) * 1000000L / measured_delay) / 1000000L;
     printf("The independent delay is %f milliseconds.\n", independent_delay/1000);
     printf("The average latency of the exchanges is %0.3f milliseconds.\n", average_latency);

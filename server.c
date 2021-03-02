@@ -311,10 +311,6 @@ int main(int argc, char **argv)
                         current->testByte = 0;
                         current->pending_data = 0;
                     } else {
-//                                                                fwrite(buf + 10, size - 10, 1, stdout);
-//                                                                fprintf(stdout, "\n");
-
-//                        printf("write set prior to send, current buflen: %d, idx: %d, size: %d\n", current->buf_len, current->idx, size);
                         size = send(current->socket, current->buf + current->idx, current->buf_len-current->idx, MSG_DONTWAIT);
 
                         if (size <= 0)
@@ -421,7 +417,6 @@ int main(int argc, char **argv)
 //                        gettimeofday(&server_recv_start, NULL);
 //                                                size = recv(current->socket, buf, BUF_LEN, MSG_DONTWAIT);
                         size = recv(current->socket, current->buf + current->idx, BUF_LEN-current->idx, MSG_DONTWAIT);
-//                        printf("size: %d\n", size);
                         if (size == 1) {
                             current->testByte = 1;
                             current->pending_data = 1;
