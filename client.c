@@ -103,7 +103,6 @@ int main(int argc, char **argv) {
         gettimeofday(&recvtime, NULL);
         measured_delay += ((recvtime.tv_sec - time.tv_sec) * 1000000L) + recvtime.tv_usec - time.tv_usec;
     }
-    close(sock);
     free(sendbuffer);
     free(receivebuffer);
 
@@ -112,7 +111,6 @@ int main(int argc, char **argv) {
     struct timeval starttime;
     struct timeval starttime1;
     char *mb = malloc(sizeof(char));
-    int i;
     double independent_delay;
     double y1 = 0.0;
     double k;
@@ -146,6 +144,9 @@ int main(int argc, char **argv) {
     printf("The independent delay is %f milliseconds.\n", independent_delay/1000);
     printf("The average latency of the exchanges is %0.3f milliseconds.\n", average_latency);
     printf("The measured bandwidth is %f Mbps. \n", measured_bandwidth);
+
+    close(sock);
+
 
     return 0;
 }
