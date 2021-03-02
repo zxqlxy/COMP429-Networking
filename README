@@ -11,7 +11,7 @@ combinations of different message sizes and counts. For example, we tested
 messages of size 65535 bytes and send them 10000 times, messages of a small
 size and send them 10000 times, etc. 
 For Web Server mode, besides testing our client and server under the general
-case, we also tested them under special cases such as when client sends an 
+case (with one or more clients), we also tested them under special cases such as when client sends an 
 absolute path, our server can send back the requested file (if such file
 exists) and when the client requests a file that does not exist or uses path
 that contains "../", our server will give the corresponding error codes.
