@@ -509,7 +509,10 @@ create_response(char *buf, char *result, FILE *fp, char *root_dir)
     {
         fprintf(stderr, "%s\n", file_name);
         fp = fopen(file_name, "r+");
-
+        
+        if (fp == NULL){
+            fp = fopen(uri, "r+");
+        }
         if (fp == NULL)
         {
             perror("Failed to the open file");
