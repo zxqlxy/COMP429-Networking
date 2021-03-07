@@ -1,0 +1,20 @@
+Error detection method: CRC
+
+Sliding window:
+    window size: ?
+    re-transmission timeout: > RTT ?
+
+How to send directory name and file name?
+    Convert the strings to binary sequence, but how?
+
+Need to consider framing?
+
+
+How to send 30MB file using only 1MB buffer?
+
+
+How to implement packets (the ones containing data and acknowledge data)?
+
+
+Implement re-transmission?
+
