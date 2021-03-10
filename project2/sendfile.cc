@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -8,12 +9,17 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <thread>
+#include <mutex>
 
-#define DATASIZE = 1024
-#define PACKETSIZE = 1034 // TODO
-#define BUFSIZE = 1024000
-#define WINDOWSIZE = 20
-#define SEQNUM = 40
+
+#define DATASIZE                1024
+#define PACKETSIZE              1034 // TODO
+#define BUFSIZE                 1024000
+#define WINDOWSIZE              20
+#define SEQNUM                  40
+
+using namespace std;
 
 /* A sliding window structure */
 struct window
@@ -28,20 +34,20 @@ int main(int argc, char **argv) {
     /*
      * Parse the information about the receiver
      */
-    char *receiver_info = argv(2);
+    char *receiver_info = argv[2];
     char *recv_host;
     int recv_port;
-    recv_host = strtok(receiver_info, ':');
-    recv_port = atoi(strtok(NULL, ':'));
+    recv_host = strtok(receiver_info, ":");
+    recv_port = atoi(strtok(NULL, ":"));
 
     /*
      * Parse the information about the file to be sent
      */
-    char *file_info = argv(4);
+    char *file_info = argv[4];
     char *subdir;
     char *filename;
-    subdir = strtok(file_info, '/');
-    filename = strtok(NULL, '/');
+    subdir = strtok(file_info, "/");
+    filename = strtok(NULL, "/");
 
 
     /* create the sender socket */
@@ -67,20 +73,26 @@ int main(int argc, char **argv) {
     // TODO not sure
     c_sin.sin_addr.s_addr = INADDR_ANY;
     c_sin.sin_port = htons(0);
-    if (bind(send_sock, (const struct sockaddr *)&c_sin, sizeof(c_sin)) < 0) {
+    if (::bind(send_sock, (const struct sockaddr *)&c_sin, sizeof(c_sin)) < 0) {
         return -1;
-    }
+    }    
+    // thread recv_thread();
 
+
+    if (access(file_info, F_OK) == -1) {
+        cerr << "file doesn't exist: " << file_info << endl;
+        return 1;
+    }
     struct window windows[WINDOWSIZE];
 
     /*
      * Open the file
      */
     FILE *fp = NULL;
-    fp = fopen(file_info, 'r');
-    size_t buf_size = 0
+    fp = fopen(file_info, "r");
+    size_t buf_size = 0;
     char buf[DATASIZE];
-    if (fp != null) {
+    if (fp != NULL) {
         fseek(fp, 0, SEEK_END);
         int length = (int)ftell(fp);
         rewind(fp);
@@ -91,7 +103,10 @@ int main(int argc, char **argv) {
             if (buf_size % BUFSIZE != 0)
                 sequence_count++;
             int idx = 0;
-//            for
+        
+//      put stuff in packet
+//      send
+// receve
 
             i += buf_size;
         }
@@ -103,8 +118,7 @@ int main(int argc, char **argv) {
     /*
      * Initialize packet
      */
-    char *packet;
-    packet = malloc((35000+overhead)*sizeof(char));
+    char *packet = new char[35000];
     char *buffer;
 
 
