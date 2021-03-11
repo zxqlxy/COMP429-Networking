@@ -44,6 +44,7 @@ int main(int argc, char * argv[]) {
     int window_len;
     int max_buffer_size;
     char *fname;
+    socklen_t client_addr_size;
 
     if (argc == 3) {
         char *p_flag = argv[1];
@@ -80,7 +81,28 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    FILE *file = fopen(fname, "wb");
+    char frame[MAX_FRAME_SIZE];
+    char data[MAX_DATA_SIZE];
+    char ack[ACK_SIZE];
+    int frame_size;
+    int data_size;
+    bool frame_error;
+    bool eot;
+
+
+    while (true) {
+        frame_size =  recvfrom(socket_fd, (char *) frame, MAX_FRAME_SIZE, 
+                    MSG_WAITALL, (struct sockaddr *) &client_addr, &client_addr_size);
+        frame_error = read_frame(&recv_seq_num, data, &data_size, &eot, frame);
+        create_ack(recv_seq_num, ack, frame_error);
+        sendto(socket_fd, ack, ACK_SIZE, 0, 
+            (const struct sockaddr *) &client_addr, client_addr_size);
+        if (!frame_error) {
+            break;
+        }
+    }
+
+    FILE *file = fopen("a.recv", "wb");
     char buffer[max_buffer_size];
     int buffer_size;
 
@@ -92,8 +114,6 @@ int main(int argc, char * argv[]) {
     int data_size;
     int lfr, laf;
     int recv_seq_num;
-    bool eot;
-    bool frame_error;
 
     /* Receive frames until EOT */
     bool recv_done = false;
@@ -112,7 +132,6 @@ int main(int argc, char * argv[]) {
         
         /* Receive current buffer with sliding window */
         while (true) {
-            socklen_t client_addr_size;
             frame_size = recvfrom(socket_fd, (char *) frame, MAX_FRAME_SIZE, 
                     MSG_WAITALL, (struct sockaddr *) &client_addr, 
                     &client_addr_size);

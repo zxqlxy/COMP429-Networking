@@ -7,12 +7,12 @@ DEFS 	 	=
 
 all: recvfile sendfile
 
-recvfile: recvfile.cc
-	$(CC) $(DEFS) $(CFLAGS) $(LIB) recvfile.cc -o recvfile
+recvfile: utils.h utils.cc recvfile.cc
+	$(CC) $(DEFS) $(CFLAGS) $(LIB) utils.cc recvfile.cc -o recvfile
 
 
-sendfile: sendfile.cc
-	$(CC) $(DEFS) $(CFLAGS) $(LIB) sendfile.cc -o sendfile
+sendfile: utils.h utils.cc sendfile.cc
+	$(CC) $(DEFS) $(CFLAGS) $(LIB) utils.cc sendfile.cc -o sendfile
 
 
 clean: recvfile sendfile

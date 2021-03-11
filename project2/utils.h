@@ -20,8 +20,9 @@
 typedef unsigned char byte;
 
 char checksum(char *frame, int count);
-int create_frame(int seq_num, char *frame, char *data, int data_size, bool eot);
-void create_ack(int seq_num, char *ack, bool error);
+// int create_frame(int seq_num, char *frame, char *data, int data_size, bool eot);
+int create_frame(char type, char *frame, char *args[]);
+void create_ack(char type, int seq_num, char *ack, bool error);
 bool read_frame(int *seq_num, char *data, int *data_size, bool *eot, char *frame);
 bool read_ack(int *seq_num, bool *error, char *ack);
 
