@@ -9,19 +9,23 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <pthread.h>
+#include "utils.c"
 
-#define DATASIZE = 1024
-#define PACKETSIZE = 1034 // TODO
-#define BUFSIZE = 1024000
-#define WINDOWSIZE = 20
-#define SEQNUM = 40
+#define DATASIZE = 1500-40;
+#define PACKETSIZE = 1500-30; // TODO
+#define BUFSIZE = 1024000;
+#define WINDOWSIZE = 20;
+#define SEQNUM = 40;
+#define TIMEOUT = 30000;
+
+bool isTimeout(struct packet packet);
+void ack_receive();
 
 /* A sliding window structure */
 struct packet {
         bool ACK;
         struct timeval *recv_start;
         bool isSent;
-//    char data[];
 };
 
 pthread_mutex_t lock;
@@ -109,7 +113,7 @@ int main(int argc, char **argv) {
                 return -1;
         }
 
-        struct packet packets[ WINDOWSIZE];
+        struct packet packets[WINDOWSIZE];
 
         /*
          * Open the file
@@ -117,8 +121,11 @@ int main(int argc, char **argv) {
         FILE *fp = NULL;
         fp = fopen(file_info, 'rb');
         size_t buf_size = 0;
-        char buf[ BUFSIZE];
+        char buf[BUFSIZE];
         int last_ack_received, last_packet_sent;
+        int sending_data_size;
+        char data[DATASIZE];
+        char packet[PACKETSIZE];
         if (fp != null) {
                 bool read = true;
                 while (read) {
@@ -153,16 +160,61 @@ int main(int argc, char **argv) {
                                                 i++;
                                                 shift += i;
                                         }
-                                        
+                                        int j;
+                                        for (j = 0; j < WINDOWSIZE - shift; j++) {
+                                                packets[j] = packets[j + shift];
+                                        }
 
-
+                                        int k;
+                                        for (k = WINDOWSIZE - shift; k < WINDOWSIZE; k++) {
+                                                packets[k].isSent = false;
+                                                packets[k].ACK = false;
+                                        }
                                 }
                                 pthread_mutex_unlock(&lock);
+
+                                /* send message in current window */
+                                for (int i = 0; i < WINDOWSIZE; i++) {
+                                        int sequence_index = last_ack_received + 1 + i;
+                                        pthread_mutex_lock(&lock);
+                                        if (sequence_index < sequence_count) {
+                                                if (!packets[sequence_index].isSent || isTimeout(packets[sequence_index])) {
+                                                        int buffer_index = DATASIZE * sequence_index;
+                                                        if (buf_size - buffer_index < DATASIZE) {
+                                                                sending_data_size = buf_size - buffer_index;
+                                                        } else {
+                                                                sending_data_size = DATASIZE;
+                                                        }
+                                                        memcpy(data, buf[buffer_index], sending_data_size);
+                                                        int packet_size = create_packet(sequence_index, packet, data,
+                                                                sending_data_size,
+                                                                (!read && (sequence_count == sequence_index + 1)));
+
+                                                        sendTo(send_sock, packet, packet_size, 0, (struct sockaddr *)&recv_sin, sizeof(recv_sin));
+                                                        packets[i].isSent = true;
+                                                        gettimeofday(packets[i].recv_start, NULL);
+                                                }
+                                        }
+                                        pthread_mutex_unlock(&lock);
+                                }
                         }
                 }
         } else {
                 perror("Error reading the file\n");
         }
+}
 
+bool
+isTimeout (struct packet packet) {
+        struct timeval time;
+        gettimeofday(&time, NULL);
+        int elapse_time = ((packet.recv_start->tv_sec - time.tv_sec) * 1000000L)
+                + (packet.recv_start->tv_usec - time.tv_usec);
+        return elapse_time > TIMEOUT;
+}
+
+/* TODO: update ack receive function */
+void
+ack_receive() {
 
 }
