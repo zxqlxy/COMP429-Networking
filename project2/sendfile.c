@@ -17,6 +17,7 @@
 #define WINDOWSIZE = 20;
 #define SEQNUM = 40;
 #define TIMEOUT = 30000;
+#define ACKSIZE = 6;
 
 bool isTimeout(struct packet packet);
 void ack_receive();
@@ -29,6 +30,13 @@ struct packet {
 };
 
 pthread_mutex_t lock;
+
+struct sockaddr_in recv_sin;
+struct sockaddr_in send_sin;
+struct packet packets[WINDOWSIZE];
+int last_ack_received, last_packet_sent;
+
+
 
 int main(int argc, char **argv) {
         char *recv_host;
@@ -96,13 +104,14 @@ int main(int argc, char **argv) {
          * Put information about the receiver in a struct.
          * Used in sendto and receiverfrom
          */
-        struct sockaddr_in recv_sin;
         memset(&server_sin, 0, sizeof(recv_sin));
         recv_sin.sin_family = AF_INET;
         recv_sin.sin_addr.s_addr = inet_addr(recv_host);
         recv_sin.sin_port = htons(recv_port);
 
-        struct sockaddr_in send_sin;
+        /**
+         * Put information about the sender in a struct
+         */
         memset(&c_sin, 0, sizeof(send_sin));
         send_sin.sin_family = AF_INET;
         // TODO not sure
@@ -113,16 +122,18 @@ int main(int argc, char **argv) {
                 return -1;
         }
 
-        struct packet packets[WINDOWSIZE];
-
         /*
          * Open the file
          */
         FILE *fp = NULL;
         fp = fopen(file_info, 'rb');
+
+        /* TODO: Start to listen to listen to acknowledgement packets*/
+
+        /* TODO: Send dir/filename to receiver before line 140*/
+
         size_t buf_size = 0;
         char buf[BUFSIZE];
-        int last_ack_received, last_packet_sent;
         int sending_data_size;
         char data[DATASIZE];
         char packet[PACKETSIZE];
@@ -156,7 +167,7 @@ int main(int argc, char **argv) {
                                 if (packets[0].ACK) {
                                         int i = 1;
                                         shift = 1;
-                                        while (packets[i].ACK & i < WINDOWSIZE) {
+                                        while (packets[i].ACK && i < WINDOWSIZE) {
                                                 i++;
                                                 shift += i;
                                         }
@@ -170,6 +181,8 @@ int main(int argc, char **argv) {
                                                 packets[k].isSent = false;
                                                 packets[k].ACK = false;
                                         }
+                                        last_ack_received += shift;
+                                        last_packet_sent = last_ack_received + WINDOWSIZE;
                                 }
                                 pthread_mutex_unlock(&lock);
 
@@ -178,7 +191,7 @@ int main(int argc, char **argv) {
                                         int sequence_index = last_ack_received + 1 + i;
                                         pthread_mutex_lock(&lock);
                                         if (sequence_index < sequence_count) {
-                                                if (!packets[sequence_index].isSent || isTimeout(packets[sequence_index])) {
+                                                if (!packets[i].isSent || isTimeout(packets[i])) {
                                                         int buffer_index = DATASIZE * sequence_index;
                                                         if (buf_size - buffer_index < DATASIZE) {
                                                                 sending_data_size = buf_size - buffer_index;
@@ -214,7 +227,35 @@ isTimeout (struct packet packet) {
 }
 
 /* TODO: update ack receive function */
+/** Ack packet scheme:
+ * Byte 0 - 3: sequence number
+ * Byte 4: check sum byte
+ */
 void
 ack_receive() {
 
+        char ack_packet[ACKSIZE];
+        int seq_num;
+        bool packet_error;
+        bool ack_error;
+
+        while (true) {
+                socklen_t *recv_addr_size;
+                received_size = recvfrom(send_sin, (char *)ack_packet, ACKSIZE, MSG_WAITALL, recv_sin, recv_addr_size);
+                if (received_size == ACKSIZE) {
+                        ack_error = read_ack(&seq_num, &packet_error, (char *)ack_packet);
+                        pthread_mutex_lock(&lock);
+                        if (!ack_error && seq_num > last_ack_received && seq_num <= last_packet_sent) {
+                                //The acknowledgement packet does not contain bit error
+                                if (packet_error) {
+                                        //If the packet receieved by receiver contains error, RESEND
+                                        packets[seq_num - last_ack_received - 1].isSent = false;
+                                } else {
+                                        //The packet successfully received, move on
+                                        packet[seq_num - last_ack_received - 1].ACK = true;
+                                }
+                        }
+                        pthread_mutex_unlock(&lock);
+                }
+        }   
 }
